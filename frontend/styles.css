@@ -190,6 +190,13 @@ textarea {
   background: var(--surface);
 }
 
+/* El atributo `hidden` sólo oculta a través de la hoja de estilos del
+   navegador, así que cualquier `display` que declaremos aquí lo anularía.
+   Esta regla lo devuelve a su sitio. */
+.map-error[hidden] {
+  display: none;
+}
+
 .map-error {
   position: absolute;
   inset: 24px;

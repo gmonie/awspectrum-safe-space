@@ -148,8 +148,8 @@ function initMap() {
 
   // Comodidad para el formulario: un clic en el mapa rellena las coordenadas.
   map.on("click", (event) => {
-    dom.placeForm.latitude.value = event.lngLat.lat.toFixed(5);
-    dom.placeForm.longitude.value = event.lngLat.lng.toFixed(5);
+    dom.placeForm.elements.latitude.value = event.lngLat.lat.toFixed(5);
+    dom.placeForm.elements.longitude.value = event.lngLat.lng.toFixed(5);
   });
 }
 
@@ -431,14 +431,16 @@ async function handleCreatePlace(event) {
   dom.formError.textContent = "";
   dom.submitForm.disabled = true;
 
-  const form = dom.placeForm;
+  // Leemos con FormData en vez de form.<campo>: un input llamado "name"
+  // chocaría con la propiedad `name` del propio elemento <form>.
+  const fields = new FormData(dom.placeForm);
   const payload = {
-    name: form.name.value.trim(),
-    category: form.category.value,
-    address: form.address.value.trim(),
-    latitude: Number(form.latitude.value),
-    longitude: Number(form.longitude.value),
-    communityNote: form.communityNote.value.trim(),
+    name: fields.get("name").trim(),
+    category: fields.get("category"),
+    address: fields.get("address").trim(),
+    latitude: Number(fields.get("latitude")),
+    longitude: Number(fields.get("longitude")),
+    communityNote: fields.get("communityNote").trim(),
     signals: [...dom.formSignals.children]
       .filter((chip) => chip.getAttribute("aria-pressed") === "true")
       .map((chip) => chip.dataset.signal),
@@ -452,7 +454,7 @@ async function handleCreatePlace(event) {
     renderMarkers();
     applyFilters();
 
-    form.reset();
+    dom.placeForm.reset();
     for (const chip of dom.formSignals.children) chip.setAttribute("aria-pressed", "false");
     dom.dialog.close();
     selectPlace(data.place.id);
