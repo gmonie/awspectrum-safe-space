@@ -14,17 +14,17 @@ Description: >-
 
 Parameters:
   AllowedSignals:
-    Type: CommaDelimitedList
+    Type: String
     Description: >-
-      Taxonomía de señales de inclusión que acepta la aplicación. Es la única
-      fuente de verdad: la usan las dos Lambdas para validar y el frontend para
-      dibujar los filtros. Para añadir una señal, edita esta línea y vuelve a
-      ejecutar 'sam deploy'.
+      Taxonomía de señales de inclusión que acepta la aplicación, separada por
+      comas. Es la única fuente de verdad: la usan las dos Lambdas para validar
+      y el frontend para dibujar los filtros. Para añadir una señal, edita esta
+      línea y vuelve a ejecutar 'sam deploy'.
     Default: lgbtq_space,neutral_bathroom,accessible,pronouns_respected,couples_friendly,quiet,inclusive_healthcare
 
   AllowedCategories:
-    Type: CommaDelimitedList
-    Description: Categorías de lugar que acepta la aplicación.
+    Type: String
+    Description: Categorías de lugar que acepta la aplicación, separadas por comas.
     Default: cafe,restaurant,bar,bookstore,clinic,community_center,museum,park,coworking,shop
 
   BedrockModelId:
@@ -47,8 +47,8 @@ Globals:
     # requirements.txt y 'sam build' no puede fallar por versiones de Python.
     Environment:
       Variables:
-        ALLOWED_SIGNALS: !Join [",", !Ref AllowedSignals]
-        ALLOWED_CATEGORIES: !Join [",", !Ref AllowedCategories]
+        ALLOWED_SIGNALS: !Ref AllowedSignals
+        ALLOWED_CATEGORIES: !Ref AllowedCategories
 
 Resources:
   # -------------------------------------------------------------------------
@@ -265,8 +265,8 @@ Outputs:
 
   AllowedSignals:
     Description: Taxonomía de señales vigente, tal como la validan las Lambdas.
-    Value: !Join [",", !Ref AllowedSignals]
+    Value: !Ref AllowedSignals
 
   AllowedCategories:
     Description: Categorías de lugar vigentes.
-    Value: !Join [",", !Ref AllowedCategories]
+    Value: !Ref AllowedCategories

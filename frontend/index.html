@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Safe Spot — mapa comunitario de espacios inclusivos para la comunidad LGBTQ+ en la Ciudad de México."
+    />
+    <title>Safe Spot · AWS Spectrum LATAM</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#results">Saltar a los resultados</a>
+
+    <!-- El degradado del encabezado es la identidad de AWS Spectrum LATAM. -->
+    <div class="pride-bar" role="presentation"></div>
+
+    <header class="app-header">
+      <div class="brand">
+        <h1 class="brand__name">Safe&nbsp;Spot</h1>
+        <p class="brand__tagline">Mapa comunitario de espacios inclusivos · CDMX</p>
+      </div>
+      <div class="brand__badge">
+        <span aria-hidden="true">🌈</span>
+        <span>AWS Spectrum LATAM</span>
+      </div>
+    </header>
+
+    <main class="app-layout">
+      <aside class="sidebar">
+        <!-- ---------------------------------------------------------------
+             Búsqueda en lenguaje natural.
+             El texto viaja a POST /search, Amazon Bedrock lo convierte en
+             criterios y el emparejamiento ocurre aquí, en el navegador.
+        ---------------------------------------------------------------- -->
+        <section class="panel" aria-labelledby="search-title">
+          <h2 class="panel__title" id="search-title">
+            <span aria-hidden="true">✨</span> Buscar con lenguaje natural
+          </h2>
+
+          <form id="search-form" class="search">
+            <label class="visually-hidden" for="search-input">
+              Describe el lugar que buscas
+            </label>
+            <textarea
+              id="search-input"
+              class="search__input"
+              rows="3"
+              maxlength="300"
+              placeholder="Busco un café tranquilo para una cita con mi novia y me importa que tenga baño neutral"
+            ></textarea>
+            <button type="submit" class="button button--primary" id="search-button">
+              Interpretar y buscar
+            </button>
+          </form>
+
+          <p class="search__result" id="search-result" role="status" aria-live="polite"></p>
+        </section>
+
+        <!-- ---------------------------------------------------------------
+             Filtros tradicionales. Las señales se generan desde
+             CONFIG.allowedSignals, que sale de template.yaml.
+        ---------------------------------------------------------------- -->
+        <section class="panel" aria-labelledby="filters-title">
+          <div class="panel__header">
+            <h2 class="panel__title" id="filters-title">
+              <span aria-hidden="true">🫶</span> Señales de inclusión
+            </h2>
+            <button type="button" class="button button--ghost" id="clear-filters">Limpiar</button>
+          </div>
+          <div class="chips" id="signal-filters"></div>
+        </section>
+
+        <!-- ---------------------------------------------------------------
+             Resultados
+        ---------------------------------------------------------------- -->
+        <section class="panel panel--grow" aria-labelledby="results-title">
+          <div class="panel__header">
+            <h2 class="panel__title" id="results-title">
+              <span aria-hidden="true">📍</span> Espacios
+            </h2>
+            <span class="counter" id="results-counter"></span>
+          </div>
+          <ul class="results" id="results" aria-live="polite"></ul>
+        </section>
+
+        <button type="button" class="button button--primary button--block" id="open-form">
+          + Recomendar un espacio
+        </button>
+
+        <p class="disclaimer">
+          Safe Spot <strong>no certifica</strong> que un lugar sea universalmente seguro. Recoge
+          señales reportadas por la comunidad, con su procedencia y su fecha.
+        </p>
+      </aside>
+
+      <div class="map-panel">
+        <div id="map" role="application" aria-label="Mapa de espacios inclusivos"></div>
+        <p class="map-error" id="map-error" hidden></p>
+      </div>
+    </main>
+
+    <!-- -----------------------------------------------------------------
+         Formulario de alta. Envía POST /places.
+    ------------------------------------------------------------------ -->
+    <dialog id="place-dialog" class="dialog" aria-labelledby="dialog-title">
+      <form id="place-form" method="dialog" class="dialog__form">
+        <h2 class="panel__title" id="dialog-title">
+          <span aria-hidden="true">🌈</span> Recomendar un espacio
+        </h2>
+
+        <label class="field">
+          <span class="field__label">Nombre del lugar</span>
+          <input class="field__input" name="name" type="text" maxlength="120" required />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Categoría</span>
+          <select class="field__input" name="category" id="category-select" required></select>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Dirección</span>
+          <input class="field__input" name="address" type="text" maxlength="200" />
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field__label">Latitud</span>
+            <input class="field__input" name="latitude" type="number" step="any" required />
+          </label>
+          <label class="field">
+            <span class="field__label">Longitud</span>
+            <input class="field__input" name="longitude" type="number" step="any" required />
+          </label>
+        </div>
+
+        <p class="field__hint">
+          ¿No sabes las coordenadas? Haz clic en el mapa y se rellenan solas.
+        </p>
+
+        <fieldset class="field">
+          <legend class="field__label">Señales reportadas</legend>
+          <div class="chips" id="form-signals"></div>
+        </fieldset>
+
+        <label class="field">
+          <span class="field__label">Nota de la comunidad</span>
+          <textarea class="field__input" name="communityNote" rows="3" maxlength="280"></textarea>
+        </label>
+
+        <p class="dialog__error" id="form-error" role="alert"></p>
+
+        <div class="dialog__actions">
+          <button type="button" class="button button--ghost" id="cancel-form">Cancelar</button>
+          <button type="submit" class="button button--primary" id="submit-form">Registrar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- config.js lo genera scripts/publish-frontend.sh a partir de los
+         Outputs de tu stack. No existe hasta que lo ejecutes. -->
+    <script src="config.js"></script>
+    <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

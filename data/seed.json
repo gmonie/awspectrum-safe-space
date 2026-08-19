@@ -1,0 +1,355 @@
+[
+  {
+    "id": "kinky-bar",
+    "name": "Kinky Bar",
+    "category": "bar",
+    "address": "Calle Amberes 1, Juárez, 06600 Cuauhtémoc, CDMX, México",
+    "latitude": 19.42712,
+    "longitude": -99.16628,
+    "signals": [
+      "lgbtq_space",
+      "couples_friendly"
+    ],
+    "communityNote": "Bar histórico de la Zona Rosa. La comunidad lo reporta como espacio abiertamente LGBTQ+.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "marrakech-salon",
+    "name": "Marrakech Salón",
+    "category": "bar",
+    "address": "Marrakech Salon, República de Cuba 18, Centro, 06010 Cuauhtémoc, CDMX, México",
+    "latitude": 19.43758,
+    "longitude": -99.13868,
+    "signals": [
+      "lgbtq_space",
+      "couples_friendly"
+    ],
+    "communityNote": "Cantina del Centro Histórico con público mayoritariamente LGBTQ+ reportado por la comunidad.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "la-purisima",
+    "name": "La Purísima",
+    "category": "bar",
+    "address": "República de Cuba 17, Centro, 06010 Cuauhtémoc, CDMX, México",
+    "latitude": 19.43742,
+    "longitude": -99.13887,
+    "signals": [
+      "lgbtq_space",
+      "couples_friendly",
+      "quiet"
+    ],
+    "communityNote": "Espacio de la calle República de Cuba reportado como cómodo para parejas.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "toms-leather-bar",
+    "name": "Tom's Leather Bar",
+    "category": "bar",
+    "address": "Tom's Leather Bar, Avenida Insurgentes Sur 357, Hipódromo, 06100 Cuauhtémoc, CDMX, México",
+    "latitude": 19.41116,
+    "longitude": -99.16696,
+    "signals": [
+      "lgbtq_space"
+    ],
+    "communityNote": "Espacio explícitamente LGBTQ+ sobre Avenida Insurgentes Sur.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "cafe-toscano",
+    "name": "Café Toscano",
+    "category": "cafe",
+    "address": "Café Toscano, Orizaba 42l, Roma Norte, 06700 Cuauhtémoc, CDMX, México",
+    "latitude": 19.41278,
+    "longitude": -99.15818,
+    "signals": [
+      "quiet",
+      "couples_friendly",
+      "neutral_bathroom"
+    ],
+    "communityNote": "Cafetería tranquila en Roma Norte. Se ha reportado baño de uso neutral.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "blend-station",
+    "name": "Blend Station",
+    "category": "cafe",
+    "address": "Blend Station, Avenida Tamaulipas 60, Hipódromo, 06100 Cuauhtémoc, CDMX, México",
+    "latitude": 19.412,
+    "longitude": -99.17327,
+    "signals": [
+      "quiet",
+      "accessible",
+      "couples_friendly"
+    ],
+    "communityNote": "Cafetería amplia en Condesa con acceso a nivel de calle reportado.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "cardinal-casa-de-cafe",
+    "name": "Cardinal Casa de Café",
+    "category": "cafe",
+    "address": "Cardinal, Córdoba 132, Roma Norte, 06700 Cuauhtémoc, CDMX, México",
+    "latitude": 19.41723,
+    "longitude": -99.15819,
+    "signals": [
+      "quiet",
+      "neutral_bathroom"
+    ],
+    "communityNote": "Cafetería de especialidad en Roma Norte. Se ha reportado baño de uso neutral.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "libreria-rosario-castellanos",
+    "name": "Librería Rosario Castellanos",
+    "category": "bookstore",
+    "address": "Avenida Tamaulipas 202, Hipódromo, 06100 Cuauhtémoc, CDMX, México",
+    "latitude": 19.4073,
+    "longitude": -99.17739,
+    "signals": [
+      "quiet",
+      "accessible",
+      "neutral_bathroom"
+    ],
+    "communityNote": "Librería del Fondo de Cultura Económica en Condesa. Recinto público con accesibilidad reportada.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "casa-bosques",
+    "name": "Casa Bosques",
+    "category": "bookstore",
+    "address": "Casa Bosques, Córdoba 25, Roma Norte, 06700 Cuauhtémoc, CDMX, México",
+    "latitude": 19.42318,
+    "longitude": -99.15977,
+    "signals": [
+      "quiet"
+    ],
+    "communityNote": "Librería independiente pequeña y tranquila en Roma Norte.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "el-pendulo-condesa",
+    "name": "Cafebrería El Péndulo Condesa",
+    "category": "bookstore",
+    "address": "Cafebrería El Péndulo Condesa, Avenida Nuevo León 115, Hipódromo, 06100 Cuauhtémoc, CDMX, México",
+    "latitude": 19.41059,
+    "longitude": -99.17296,
+    "signals": [
+      "quiet",
+      "couples_friendly",
+      "accessible"
+    ],
+    "communityNote": "Librería y cafetería. La comunidad la reporta como espacio cómodo para estar sin prisa.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "clinica-especializada-condesa",
+    "name": "Clínica Especializada Condesa",
+    "category": "clinic",
+    "address": "Clínica Especializada Condesa, Avenida General Benjamín Hill, Hipódromo Condesa, 06170 Cuauhtémoc, CDMX, México",
+    "latitude": 19.40898,
+    "longitude": -99.18225,
+    "signals": [
+      "inclusive_healthcare",
+      "pronouns_respected",
+      "accessible",
+      "lgbtq_space"
+    ],
+    "communityNote": "Servicio público de salud de la Ciudad de México con atención específica a población LGBTQ+ y personas trans.",
+    "provenance": {
+      "type": "official_source",
+      "source": "Información pública de la institución responsable",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "clinica-especializada-condesa-iztapalapa",
+    "name": "Clínica Especializada Condesa Iztapalapa",
+    "category": "clinic",
+    "address": "Clínica Especializada Condesa-Iztapalapa, Combate de Celaya, Unidad Hab Vicente Guerrero, 09200 Iztapalapa, CDMX, México",
+    "latitude": 19.35677,
+    "longitude": -99.05176,
+    "signals": [
+      "inclusive_healthcare",
+      "pronouns_respected",
+      "accessible",
+      "lgbtq_space"
+    ],
+    "communityNote": "Sede en Iztapalapa del mismo servicio público de salud especializada.",
+    "provenance": {
+      "type": "official_source",
+      "source": "Información pública de la institución responsable",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "museo-memoria-y-tolerancia",
+    "name": "Museo Memoria y Tolerancia",
+    "category": "museum",
+    "address": "Museo Memoria y Tolerancia, Avenida Juárez 8, Centro, 06050 Cuauhtémoc, CDMX, México",
+    "latitude": 19.43452,
+    "longitude": -99.1445,
+    "signals": [
+      "accessible",
+      "neutral_bathroom",
+      "quiet"
+    ],
+    "communityNote": "Museo con programa permanente sobre derechos humanos y diversidad. Recinto accesible.",
+    "provenance": {
+      "type": "official_source",
+      "source": "Información pública de la institución responsable",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "museo-universitario-del-chopo",
+    "name": "Museo Universitario del Chopo",
+    "category": "museum",
+    "address": "Museo Universitario del Chopo, Calle Doctor Enrique González Martínez 10, Santa María La Ribera, 06400 Cuauhtémoc, CDMX, México",
+    "latitude": 19.44196,
+    "longitude": -99.15677,
+    "signals": [
+      "lgbtq_space",
+      "accessible",
+      "quiet"
+    ],
+    "communityNote": "Museo de la UNAM con programación histórica ligada a la disidencia sexual y de género.",
+    "provenance": {
+      "type": "official_source",
+      "source": "Información pública de la institución responsable",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "parque-mexico",
+    "name": "Parque México",
+    "category": "park",
+    "address": "Avenida México, Hipódromo, 06100 Cuauhtémoc, CDMX, México",
+    "latitude": 19.41282,
+    "longitude": -99.16997,
+    "signals": [
+      "couples_friendly",
+      "accessible",
+      "quiet"
+    ],
+    "communityNote": "Parque público de la Condesa, reportado como cómodo para caminar en pareja.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "alameda-central",
+    "name": "Alameda Central",
+    "category": "park",
+    "address": "Alameda Central, Avenida Juárez, Centro, 06050 Cuauhtémoc, CDMX, México",
+    "latitude": 19.43464,
+    "longitude": -99.14407,
+    "signals": [
+      "accessible",
+      "couples_friendly"
+    ],
+    "communityNote": "Parque público del Centro Histórico, sede habitual de actividades comunitarias.",
+    "provenance": {
+      "type": "official_source",
+      "source": "Información pública de la institución responsable",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "centro-cultural-border",
+    "name": "Centro Cultural Border",
+    "category": "community_center",
+    "address": "Centro Cultural Border, Calle Zacatecas 43, Roma Norte, 06700 Cuauhtémoc, CDMX, México",
+    "latitude": 19.41672,
+    "longitude": -99.15626,
+    "signals": [
+      "lgbtq_space",
+      "quiet",
+      "couples_friendly"
+    ],
+    "communityNote": "Espacio cultural independiente en Roma Norte con programación comunitaria.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  },
+  {
+    "id": "parque-hundido",
+    "name": "Parque Hundido",
+    "category": "park",
+    "address": "Parque Hundido, Avenida Insurgentes Sur 01110, Extremadura Insurgentes, 03740 Benito Juárez, CDMX, México",
+    "latitude": 19.37835,
+    "longitude": -99.17804,
+    "signals": [
+      "quiet",
+      "accessible"
+    ],
+    "communityNote": "Parque público en Benito Juárez, reportado como tranquilo entre semana.",
+    "provenance": {
+      "type": "community_draft",
+      "source": "Borrador del equipo del workshop — pendiente de verificación",
+      "verifiedAt": "2026-08",
+      "geocodedWith": "Amazon Location Places V2"
+    }
+  }
+]
