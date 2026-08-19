@@ -26,6 +26,9 @@ tags = "project=safe-spot workshop=awspectrum-latam"
 # 'sam sync --code' sube sólo el código de las Lambdas, sin rehacer la
 # infraestructura. Es lo que usarás durante la fase de experimentación.
 watch = false
+# Nuestras Lambdas no tienen dependencias externas, así que no hay ninguna capa
+# que sincronizar. Sin esto, sam sync avisa de una capa que nunca existió.
+dependency_layer = false
 
 [default.delete.parameters]
 no_prompts = true
