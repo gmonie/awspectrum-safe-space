@@ -79,7 +79,7 @@ en un sitio, Bedrock en otro y el mapa en un tercero.
 Abre **AWS CloudShell** en `us-east-1` y ejecuta:
 
 ```bash
-git clone <url-del-repo>
+git clone https://github.com/itsebasvz/safe-spot-aws-spectrum.git
 cd safe-spot-aws-spectrum
 
 ./scripts/preflight.sh          # comprueba tu entorno. Solo lee, no cambia nada.
