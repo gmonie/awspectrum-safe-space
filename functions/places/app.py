@@ -221,9 +221,19 @@ def response(status_code: int, body: dict) -> dict:
 
     Las cabeceras de CORS no se ponen aquí: las añade el propio API Gateway a
     partir de la CorsConfiguration declarada en template.yaml.
+
+    'no-store' es necesario, no decorativo. Sin ninguna cabecera de frescura el
+    navegador puede aplicar cacheo heurístico (RFC 9111, sección 4.2.2) y volver
+    a servir una respuesta antigua. En la práctica: quien abre el mapa antes de
+    cargar los datos ve la lista vacía, y al recargar la sigue viendo hasta que
+    fuerza el refresco. La lista de lugares cambia cada vez que alguien
+    recomienda un sitio, así que nunca debe cachearse.
     """
     return {
         "statusCode": status_code,
-        "headers": {"content-type": "application/json; charset=utf-8"},
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+        },
         "body": json.dumps(body, cls=DecimalEncoder, ensure_ascii=False),
     }
