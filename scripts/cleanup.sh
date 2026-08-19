@@ -39,10 +39,18 @@ bucket_name="$(aws cloudformation describe-stacks \
   --query "Stacks[0].Outputs[?OutputKey=='WebsiteBucketName'].OutputValue" \
   --output text)"
 
+# Una stack que falló al crearse no llegó a publicar sus Outputs.
+if [[ -z "$bucket_name" || "$bucket_name" == "None" ]]; then
+  bucket_name=""
+fi
+
 printf '%sSe borrarán, de forma irreversible:%s\n' "$YELLOW" "$RESET"
 printf '  · la stack de CloudFormation "%s" y todos sus recursos\n' "$STACK_NAME"
-printf '  · el contenido del bucket s3://%s\n' "$bucket_name"
-printf '  · los espacios que registraste en DynamoDB\n\n'
+if [[ -n "$bucket_name" ]]; then
+  printf '  · el contenido del bucket s3://%s\n' "$bucket_name"
+  printf '  · los espacios que registraste en DynamoDB\n'
+fi
+printf '\n'
 
 if [[ "${1:-}" != "--yes" ]]; then
   read -r -p "Escribe 'borrar' para confirmar: " answer
@@ -54,7 +62,7 @@ if [[ "${1:-}" != "--yes" ]]; then
 fi
 
 # 1. Vaciar el bucket del sitio.
-if [[ -n "$bucket_name" && "$bucket_name" != "None" ]]; then
+if [[ -n "$bucket_name" ]]; then
   aws s3 rm "s3://${bucket_name}" --recursive --region "$AWS_REGION" --only-show-errors || true
   printf '  %s✓%s Bucket del sitio vaciado\n' "$GREEN" "$RESET"
 fi
