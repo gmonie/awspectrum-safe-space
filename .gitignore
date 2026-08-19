@@ -1,0 +1,19 @@
+# Artefactos de AWS SAM
+.aws-sam/
+samconfig-local.toml
+
+# Configuración del frontend generada por scripts/publish-frontend.sh.
+# Contiene la API key de Amazon Location de tu cuenta: nunca se commitea.
+frontend/config.js
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,272 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: >-
+  Safe Spot — mapa comunitario de espacios inclusivos para la comunidad LGBTQ+.
+  Workshop de AWS Spectrum LATAM. Toda la infraestructura es serverless y de pago
+  por uso: no hay ningún recurso con costo fijo por hora.
+
+# ---------------------------------------------------------------------------
+# Este archivo es el plano de Safe Spot. AWS SAM lo traduce a una plantilla de
+# CloudFormation y CloudFormation aprovisiona los recursos. Después del deploy
+# puedes verlo en la consola: CloudFormation -> Stacks -> safe-spot.
+# ---------------------------------------------------------------------------
+
+Parameters:
+  AllowedSignals:
+    Type: CommaDelimitedList
+    Description: >-
+      Taxonomía de señales de inclusión que acepta la aplicación. Es la única
+      fuente de verdad: la usan las dos Lambdas para validar y el frontend para
+      dibujar los filtros. Para añadir una señal, edita esta línea y vuelve a
+      ejecutar 'sam deploy'.
+    Default: lgbtq_space,neutral_bathroom,accessible,pronouns_respected,couples_friendly,quiet,inclusive_healthcare
+
+  AllowedCategories:
+    Type: CommaDelimitedList
+    Description: Categorías de lugar que acepta la aplicación.
+    Default: cafe,restaurant,bar,bookstore,clinic,community_center,museum,park,coworking,shop
+
+  BedrockModelId:
+    Type: String
+    Description: >-
+      Modelo de Amazon Bedrock que interpreta el lenguaje natural. Nova Micro es
+      el más pequeño y barato de la familia Nova: suficiente para una tarea de
+      extracción de intención.
+    Default: amazon.nova-micro-v1:0
+
+Globals:
+  Function:
+    Runtime: python3.13
+    Architectures:
+      - x86_64
+    MemorySize: 256
+    Timeout: 10
+    # Las dos Lambdas sólo usan la librería estándar de Python y boto3, que el
+    # runtime gestionado ya incluye. Al no haber dependencias externas no hay
+    # requirements.txt y 'sam build' no puede fallar por versiones de Python.
+    Environment:
+      Variables:
+        ALLOWED_SIGNALS: !Join [",", !Ref AllowedSignals]
+        ALLOWED_CATEGORIES: !Join [",", !Ref AllowedCategories]
+
+Resources:
+  # -------------------------------------------------------------------------
+  # Datos comunitarios
+  # -------------------------------------------------------------------------
+  PlacesTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: !Sub "${AWS::StackName}-places"
+      PrimaryKey:
+        Name: id
+        Type: String
+      # SimpleTable usa facturación bajo demanda (PAY_PER_REQUEST): pagas por
+      # lectura y escritura, no por capacidad reservada.
+
+  # -------------------------------------------------------------------------
+  # API HTTP: tres rutas, dos funciones
+  # -------------------------------------------------------------------------
+  SafeSpotApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Description: !Sub "API pública de ${AWS::StackName}"
+      CorsConfiguration:
+        # El navegador sólo puede llamar a esta API desde el sitio que
+        # publicamos en S3. El origen se conoce antes del deploy, así que no
+        # hace falta abrirlo a '*'.
+        AllowOrigins:
+          - !GetAtt WebsiteBucket.WebsiteURL
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - content-type
+        MaxAge: 300
+
+  PlacesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-places"
+      Description: Lee y registra espacios de la comunidad en DynamoDB.
+      CodeUri: functions/places/
+      Handler: app.lambda_handler
+      Environment:
+        Variables:
+          PLACES_TABLE: !Ref PlacesTable
+      Policies:
+        # Política gestionada por SAM: concede sólo las acciones de datos de
+        # DynamoDB sobre esta tabla, no sobre toda la cuenta.
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PlacesTable
+      LoggingConfig:
+        LogGroup: !Ref PlacesFunctionLogGroup
+        LogFormat: JSON
+        ApplicationLogLevel: INFO
+        SystemLogLevel: WARN
+      Events:
+        ListPlaces:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SafeSpotApi
+            Method: GET
+            Path: /places
+        CreatePlace:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SafeSpotApi
+            Method: POST
+            Path: /places
+
+  SearchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-search"
+      Description: >-
+        Convierte una frase en lenguaje natural en criterios de búsqueda
+        estructurados usando Amazon Bedrock.
+      CodeUri: functions/search/
+      Handler: app.lambda_handler
+      Environment:
+        Variables:
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+      Policies:
+        - Statement:
+            - Sid: InvokeNovaMicroOnly
+              Effect: Allow
+              Action: bedrock:InvokeModel
+              # Un único modelo, no 'bedrock:*'. Si mañana cambias de modelo,
+              # también tienes que cambiar este permiso: eso es intencional.
+              Resource: !Sub "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${BedrockModelId}"
+      LoggingConfig:
+        LogGroup: !Ref SearchFunctionLogGroup
+        LogFormat: JSON
+        ApplicationLogLevel: INFO
+        SystemLogLevel: WARN
+      Events:
+        Search:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SafeSpotApi
+            Method: POST
+            Path: /search
+
+  # -------------------------------------------------------------------------
+  # Logs
+  #
+  # Declaramos los log groups en la plantilla para dos cosas: fijar retención
+  # (sin esto los logs se guardan para siempre) y garantizar que 'sam delete'
+  # deje la cuenta realmente limpia. Los log groups que Lambda crea por su
+  # cuenta sobreviven al borrado de la stack.
+  # -------------------------------------------------------------------------
+  PlacesFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-places"
+      RetentionInDays: 7
+
+  SearchFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-search"
+      RetentionInDays: 7
+
+  # -------------------------------------------------------------------------
+  # Frontend estático
+  #
+  # ATENCIÓN — atajo consciente del workshop: el endpoint de sitio web de S3
+  # sirve por HTTP y exige que los objetos sean de lectura pública. Lo elegimos
+  # porque despliega en segundos y mantiene la arquitectura fácil de explicar.
+  # Una aplicación pública real usaría CloudFront o Amplify Hosting con HTTPS y
+  # el bucket privado. Ver la tabla "workshop vs. producción" del README.
+  # -------------------------------------------------------------------------
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-web-${AWS::AccountId}"
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        # Los dos siguientes van en false porque el sitio se publica mediante
+        # una policy de bucket. Es un cambio acotado a ESTE bucket: la
+        # plantilla nunca toca la configuración de la cuenta.
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublicReadForWebsite
+            Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "${WebsiteBucket.Arn}/*"
+
+  # -------------------------------------------------------------------------
+  # Amazon Location: mapas y búsqueda de lugares desde el navegador
+  #
+  # La API key permite llamadas no autenticadas desde el frontend sin montar
+  # Amazon Cognito. CloudFormation crea la key pero NO devuelve su valor: por
+  # eso scripts/publish-frontend.sh lo obtiene con 'aws location describe-key'.
+  # -------------------------------------------------------------------------
+  MapsApiKey:
+    Type: AWS::Location::APIKey
+    Properties:
+      KeyName: !Sub "${AWS::StackName}-maps-key"
+      Description: !Sub "Mapas y autocompletado para ${AWS::StackName}"
+      NoExpiry: true
+      ForceDelete: true
+      Restrictions:
+        AllowActions:
+          - geo-maps:GetTile
+          - geo-maps:GetStyleDescriptor
+          - geo-maps:GetSprites
+          - geo-maps:GetGlyphs
+          - geo-places:Autocomplete
+          - geo-places:Geocode
+          - geo-places:GetPlace
+          - geo-places:SearchText
+          - geo-places:Suggest
+        AllowResources:
+          - !Sub "arn:${AWS::Partition}:geo-maps:${AWS::Region}::provider/default"
+          - !Sub "arn:${AWS::Partition}:geo-places:${AWS::Region}::provider/default"
+
+Outputs:
+  ApiUrl:
+    Description: URL base del HTTP API. La consumen el frontend y los scripts.
+    Value: !Sub "https://${SafeSpotApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}"
+
+  WebsiteUrl:
+    Description: URL pública de Safe Spot. Ábrela al terminar publish-frontend.sh.
+    Value: !GetAtt WebsiteBucket.WebsiteURL
+
+  WebsiteBucketName:
+    Description: Bucket donde vive el frontend.
+    Value: !Ref WebsiteBucket
+
+  PlacesTableName:
+    Description: Tabla de DynamoDB con los espacios y sus señales.
+    Value: !Ref PlacesTable
+
+  MapsApiKeyName:
+    Description: Nombre de la API key de Amazon Location (no es su valor).
+    Value: !Ref MapsApiKey
+
+  AllowedSignals:
+    Description: Taxonomía de señales vigente, tal como la validan las Lambdas.
+    Value: !Join [",", !Ref AllowedSignals]
+
+  AllowedCategories:
+    Description: Categorías de lugar vigentes.
+    Value: !Join [",", !Ref AllowedCategories]

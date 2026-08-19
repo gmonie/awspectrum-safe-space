@@ -1,0 +1,31 @@
+# Configuración de AWS SAM para el workshop.
+#
+# Este archivo existe para que 'sam deploy' funcione sin preguntas y sin
+# 'sam deploy --guided'. Si quieres ver qué preguntaría, ejecuta el modo
+# guiado en una copia del repo: sobrescribe este archivo.
+
+version = 0.1
+
+[default.global.parameters]
+stack_name = "safe-spot"
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.deploy.parameters]
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+# SAM crea y reutiliza un bucket propio para los artefactos del deploy.
+resolve_s3 = true
+confirm_changeset = false
+fail_on_empty_changeset = false
+tags = "project=safe-spot workshop=awspectrum-latam"
+
+[default.sync.parameters]
+# 'sam sync --code' sube sólo el código de las Lambdas, sin rehacer la
+# infraestructura. Es lo que usarás durante la fase de experimentación.
+watch = false
+
+[default.delete.parameters]
+no_prompts = true
