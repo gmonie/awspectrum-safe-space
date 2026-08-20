@@ -2,14 +2,14 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
 Description: >-
-  Safe Spot — mapa comunitario de espacios inclusivos para la comunidad LGBTQ+.
+  Safe Space — mapa comunitario de espacios inclusivos para la comunidad LGBTQ+.
   Workshop de AWS Spectrum LATAM. Toda la infraestructura es serverless y de pago
   por uso: no hay ningún recurso con costo fijo por hora.
 
 # ---------------------------------------------------------------------------
-# Este archivo es el plano de Safe Spot. AWS SAM lo traduce a una plantilla de
+# Este archivo es el plano de Safe Space. AWS SAM lo traduce a una plantilla de
 # CloudFormation y CloudFormation aprovisiona los recursos. Después del deploy
-# puedes verlo en la consola: CloudFormation -> Stacks -> safe-spot.
+# puedes verlo en la consola: CloudFormation -> Stacks -> safe-space.
 # ---------------------------------------------------------------------------
 
 Parameters:
@@ -67,7 +67,7 @@ Resources:
   # -------------------------------------------------------------------------
   # API HTTP: tres rutas, dos funciones
   # -------------------------------------------------------------------------
-  SafeSpotApi:
+  SafeSpaceApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       Description: !Sub "API pública de ${AWS::StackName}"
@@ -109,13 +109,13 @@ Resources:
         ListPlaces:
           Type: HttpApi
           Properties:
-            ApiId: !Ref SafeSpotApi
+            ApiId: !Ref SafeSpaceApi
             Method: GET
             Path: /places
         CreatePlace:
           Type: HttpApi
           Properties:
-            ApiId: !Ref SafeSpotApi
+            ApiId: !Ref SafeSpaceApi
             Method: POST
             Path: /places
 
@@ -148,7 +148,7 @@ Resources:
         Search:
           Type: HttpApi
           Properties:
-            ApiId: !Ref SafeSpotApi
+            ApiId: !Ref SafeSpaceApi
             Method: POST
             Path: /search
 
@@ -243,10 +243,10 @@ Resources:
 Outputs:
   ApiUrl:
     Description: URL base del HTTP API. La consumen el frontend y los scripts.
-    Value: !Sub "https://${SafeSpotApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}"
+    Value: !Sub "https://${SafeSpaceApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}"
 
   WebsiteUrl:
-    Description: URL pública de Safe Spot. Ábrela al terminar publish-frontend.sh.
+    Description: URL pública de Safe Space. Ábrela al terminar publish-frontend.sh.
     Value: !GetAtt WebsiteBucket.WebsiteURL
 
   WebsiteBucketName:

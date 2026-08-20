@@ -11,7 +11,7 @@
    Este archivo existe solo para que sepas qué forma tiene.
 --------------------------------------------------------------------------- */
 
-window.SAFE_SPOT_CONFIG = {
+window.SAFE_SPACE_CONFIG = {
   // Output ApiUrl de la stack.
   apiUrl: "https://abc123xyz.execute-api.us-east-1.amazonaws.com",
 
@@ -19,7 +19,7 @@ window.SAFE_SPOT_CONFIG = {
   region: "us-east-1",
 
   // Valor de la API key de Amazon Location, obtenido con:
-  //   aws location describe-key --key-name safe-spot-maps-key --query Key
+  //   aws location describe-key --key-name safe-space-maps-key --query Key
   mapsApiKey: "v1.public.EJEMPLO-NO-ES-UNA-KEY-REAL",
 
   // Taxonomía vigente, tal como la declara template.yaml. El frontend dibuja

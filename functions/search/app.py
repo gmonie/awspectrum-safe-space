@@ -13,7 +13,7 @@ Amazon Bedrock traduce "busco un café tranquilo con baño neutral" a:
 Y ahí termina su trabajo. **El modelo no elige lugares y no consulta la base de
 datos.** Esta función valida su respuesta contra la taxonomía que declara
 template.yaml, y el navegador hace el emparejamiento sobre los espacios que ya
-descargó con `GET /places`. Así garantizamos que Safe Spot solo puede devolver
+descargó con `GET /places`. Así garantizamos que Safe Space solo puede devolver
 lugares que existen de verdad en la tabla.
 
 Si Bedrock no está disponible, la función degrada a una extracción por palabras
@@ -53,7 +53,7 @@ BEDROCK = boto3.client(
     ),
 )
 
-SYSTEM_PROMPT = f"""Eres un extractor de criterios para Safe Spot, un mapa de espacios inclusivos.
+SYSTEM_PROMPT = f"""Eres un extractor de criterios para Safe Space, un mapa de espacios inclusivos.
 
 Recibes una frase de una persona que busca un lugar y devuelves ÚNICAMENTE un
 objeto JSON con esta forma exacta:

@@ -1,4 +1,4 @@
-# 🌈 Safe Spot
+# 🌈 Safe Space
 
 **Mapa comunitario de espacios inclusivos para la comunidad LGBTQ+ · Ciudad de México**
 
@@ -11,16 +11,16 @@ servicio.
 
 ---
 
-## Qué hace Safe Spot
+## Qué hace Safe Space
 
 Un mapa convencional responde muy bien *dónde está un lugar*. No responde lo que a veces más importa:
 ¿tiene baño neutral?, ¿respetan pronombres?, ¿es accesible?, ¿la comunidad lo reporta como cómodo
 para ir en pareja?
 
-Safe Spot combina tres cosas: **ubicación** (Amazon Location), **información comunitaria**
+Safe Space combina tres cosas: **ubicación** (Amazon Location), **información comunitaria**
 (DynamoDB) y **búsqueda en lenguaje natural** (Amazon Bedrock).
 
-> **Safe Spot no certifica que un lugar sea universalmente seguro.** Recoge señales reportadas por la
+> **Safe Space no certifica que un lugar sea universalmente seguro.** Recoge señales reportadas por la
 > comunidad, con su procedencia y su fecha. Esa distinción es parte del producto.
 
 ### Qué hace —y qué no hace— la IA
@@ -48,7 +48,7 @@ el código toma la decisión final.**
 
 ```mermaid
 flowchart TB
-    U["👤 Persona"] --> F["🌈 Safe Spot<br>HTML + CSS + JS"]
+    U["👤 Persona"] --> F["🌈 Safe Space<br>HTML + CSS + JS"]
     S3["Amazon S3<br>sitio estático"] --> F
     F --> LOC["Amazon Location<br>Maps V2 + Places V2"]
     F --> API["API Gateway<br>HTTP API"]
@@ -79,8 +79,8 @@ en un sitio, Bedrock en otro y el mapa en un tercero.
 Abre **AWS CloudShell** en `us-east-1` y ejecuta:
 
 ```bash
-git clone https://github.com/itsebasvz/awspectrum-safe-spot.git
-cd awspectrum-safe-spot
+git clone https://github.com/itsebasvz/awspectrum-safe-space.git
+cd awspectrum-safe-space
 
 ./scripts/preflight.sh          # comprueba tu entorno. Solo lee, no cambia nada.
 sam build                       # ~2 s
@@ -89,7 +89,7 @@ sam deploy                      # ~1 min 10 s
 python3 scripts/seed.py         # carga los 18 lugares en DynamoDB
 ```
 
-`publish-frontend.sh` te imprime la URL de tu Safe Spot al terminar. Ábrela.
+`publish-frontend.sh` te imprime la URL de tu Safe Space al terminar. Ábrela.
 
 <details>
 <summary><strong>¿Qué hace cada comando?</strong></summary>
@@ -98,7 +98,7 @@ python3 scripts/seed.py         # carga los 18 lugares en DynamoDB
 | --- | --- |
 | `preflight.sh` | Verifica credenciales, región, herramientas, acceso a Bedrock y a Location, y si algo de tu cuenta bloquearía el despliegue. **Reporta problemas; no los arregla por su cuenta.** |
 | `sam build` | Prepara el código de las Lambdas en `.aws-sam/build/`. Tarda un par de segundos porque no hay dependencias que instalar. |
-| `sam deploy` | SAM traduce `template.yaml` a CloudFormation y CloudFormation crea la stack. Míralo en la consola: **CloudFormation → Stacks → safe-spot**. |
+| `sam deploy` | SAM traduce `template.yaml` a CloudFormation y CloudFormation crea la stack. Míralo en la consola: **CloudFormation → Stacks → safe-space**. |
 | `publish-frontend.sh` | Lee los Outputs de la stack, obtiene el **valor** de la API key de Amazon Location (CloudFormation crea la key pero no revela su valor), escribe `frontend/config.js` y sincroniza la carpeta al bucket. |
 | `seed.py` | Valida `data/seed.json` contra la taxonomía real de tu stack y lo escribe en DynamoDB. Es idempotente: puedes repetirlo. |
 
@@ -117,7 +117,7 @@ POST /search   → convierte lenguaje natural en criterios
 Pruébalas desde CloudShell. Sustituye `$API` por el Output `ApiUrl` de tu stack:
 
 ```bash
-API=$(aws cloudformation describe-stacks --stack-name safe-spot \
+API=$(aws cloudformation describe-stacks --stack-name safe-space \
       --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
 
 curl "$API/places" | head -c 400
@@ -145,7 +145,7 @@ aplicación sigue funcionando y tú puedes seguir con el workshop.
 ## Estructura del repo
 
 ```
-awspectrum-safe-spot/
+awspectrum-safe-space/
 ├── template.yaml            # el plano: todos los recursos de AWS
 ├── samconfig.toml           # para que 'sam deploy' no haga preguntas
 │
@@ -203,7 +203,7 @@ Si cambias `template.yaml` —por ejemplo para añadir una señal— entonces s�
    Fíjate en que, hagas lo que hagas, `validate_criteria()` sigue descartando lo que no está en la
    allowlist.
 3. Manda a `POST /places` una señal inventada y mira qué responde la API.
-4. Abre **CloudWatch → Log groups → /aws/lambda/safe-spot-search** y sigue una petición.
+4. Abre **CloudWatch → Log groups → /aws/lambda/safe-space-search** y sigue una petición.
 
 ---
 
@@ -218,7 +218,7 @@ El cleanup es parte del workshop, no una nota al pie.
 Vacía el bucket del sitio —CloudFormation no puede borrar un bucket con objetos dentro— y ejecuta
 `sam delete`. Se lleva la API, las Lambdas, la tabla, la API key y los log groups.
 
-Compruébalo en **CloudFormation → Stacks**: `safe-spot` ya no debería aparecer.
+Compruébalo en **CloudFormation → Stacks**: `safe-space` ya no debería aparecer.
 
 ---
 
@@ -266,7 +266,7 @@ Cada registro de `data/seed.json` declara de dónde viene:
 Las direcciones y coordenadas no están escritas a mano: salen de Amazon Location Places V2.
 
 > ⚠️ Los registros marcados como `community_draft` son un punto de partida para el workshop y deben
-> verificarse antes de presentar Safe Spot como una fuente fiable. Una señal reportada sin
+> verificarse antes de presentar Safe Space como una fuente fiable. Una señal reportada sin
 > procedencia clara no es información: es un rumor con coordenadas.
 
 ---

@@ -8,7 +8,7 @@ ejecutarlo sobrescribe los mismos registros en vez de duplicarlos. Puedes
 lanzarlo las veces que necesites.
 
 Variables de entorno opcionales:
-    STACK_NAME   nombre de la stack de CloudFormation (por defecto: safe-spot)
+    STACK_NAME   nombre de la stack de CloudFormation (por defecto: safe-space)
     AWS_REGION   región (por defecto: us-east-1)
 """
 
@@ -21,7 +21,7 @@ from pathlib import Path
 import boto3
 from botocore.exceptions import ClientError
 
-STACK_NAME = os.environ.get("STACK_NAME", "safe-spot")
+STACK_NAME = os.environ.get("STACK_NAME", "safe-space")
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent

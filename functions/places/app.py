@@ -181,7 +181,7 @@ def validate_place(payload: dict) -> tuple[dict, list[str]]:
         # origen del dato no se puede falsear desde el formulario.
         "provenance": {
             "type": "community_report",
-            "source": "safe-spot-form",
+            "source": "safe-space-form",
             "verifiedAt": now.strftime("%Y-%m"),
         },
         "createdAt": now.isoformat(timespec="seconds"),

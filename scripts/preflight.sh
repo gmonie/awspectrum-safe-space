@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# preflight.sh — comprueba que tu entorno puede desplegar Safe Spot.
+# preflight.sh — comprueba que tu entorno puede desplegar Safe Space.
 #
 # Este script SOLO LEE. No crea, no modifica y no borra nada, y en particular
 # nunca relaja la seguridad de tu cuenta: si encuentra un bloqueo, te lo dice
@@ -11,7 +11,7 @@
 #
 set -euo pipefail
 
-STACK_NAME="${STACK_NAME:-safe-spot}"
+STACK_NAME="${STACK_NAME:-safe-space}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 EXPECTED_REGION="us-east-1"
 MODEL_ID="${MODEL_ID:-amazon.nova-micro-v1:0}"
@@ -30,7 +30,7 @@ warn()  { printf '  %s!%s %s\n' "$YELLOW" "$RESET" "$1"; warnings=$((warnings + 
 fail()  { printf '  %s✗%s %s\n' "$RED" "$RESET" "$1"; failures=$((failures + 1)); }
 hint()  { printf '    %s%s%s\n' "$DIM" "$1" "$RESET"; }
 
-printf '\n%s🌈 Safe Spot · preflight%s\n' "$BOLD" "$RESET"
+printf '\n%s🌈 Safe Space · preflight%s\n' "$BOLD" "$RESET"
 printf '%sRegión objetivo: %s · Stack: %s%s\n\n' "$DIM" "$AWS_REGION" "$STACK_NAME" "$RESET"
 
 # --------------------------------------------------------------------------

@@ -7,7 +7,7 @@
 version = 0.1
 
 [default.global.parameters]
-stack_name = "safe-spot"
+stack_name = "safe-space"
 
 [default.build.parameters]
 cached = true
@@ -20,7 +20,7 @@ capabilities = "CAPABILITY_IAM"
 resolve_s3 = true
 confirm_changeset = false
 fail_on_empty_changeset = false
-tags = "project=safe-spot workshop=awspectrum-latam"
+tags = "project=safe-space workshop=awspectrum-latam"
 
 [default.sync.parameters]
 # 'sam sync --code' sube sólo el código de las Lambdas, sin rehacer la

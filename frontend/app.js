@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------------
-   Safe Spot — lógica del frontend
+   Safe Space — lógica del frontend
    ---------------------------------------------------------------------------
 
    Aquí es donde el navegador toca AWS. Hay exactamente cuatro puntos de
@@ -22,7 +22,7 @@
 // ---------------------------------------------------------------------------
 
 // config.js lo genera scripts/publish-frontend.sh con los Outputs de tu stack.
-const CONFIG = window.SAFE_SPOT_CONFIG;
+const CONFIG = window.SAFE_SPACE_CONFIG;
 
 const MAP_CENTER = [-99.15, 19.42]; // Ciudad de México [longitud, latitud]
 const MAP_ZOOM = 12.4;

@@ -16,7 +16,7 @@
 #
 set -euo pipefail
 
-STACK_NAME="${STACK_NAME:-safe-spot}"
+STACK_NAME="${STACK_NAME:-safe-space}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -26,7 +26,7 @@ else
   BOLD=""; GREEN=""; YELLOW=""; DIM=""; RESET=""
 fi
 
-printf '\n%s🧹 Safe Spot · cleanup%s\n\n' "$BOLD" "$RESET"
+printf '\n%s🧹 Safe Space · cleanup%s\n\n' "$BOLD" "$RESET"
 
 if ! aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" >/dev/null 2>&1; then
   printf '  No existe la stack "%s" en %s. No hay nada que borrar.\n\n' "$STACK_NAME" "$AWS_REGION"

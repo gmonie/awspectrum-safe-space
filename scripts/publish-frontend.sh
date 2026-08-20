@@ -15,7 +15,7 @@
 #
 set -euo pipefail
 
-STACK_NAME="${STACK_NAME:-safe-spot}"
+STACK_NAME="${STACK_NAME:-safe-space}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -28,7 +28,7 @@ else
   BOLD=""; GREEN=""; DIM=""; RESET=""
 fi
 
-printf '\n%s🌈 Safe Spot · publicar frontend%s\n\n' "$BOLD" "$RESET"
+printf '\n%s🌈 Safe Space · publicar frontend%s\n\n' "$BOLD" "$RESET"
 
 # --------------------------------------------------------------------------
 # 1. Outputs de la stack
@@ -81,7 +81,7 @@ to_json_array() {
 cat > "$CONFIG_FILE" <<EOF
 // Generado por scripts/publish-frontend.sh — no lo edites a mano.
 // Contiene la API key de Amazon Location de tu cuenta: está en .gitignore.
-window.SAFE_SPOT_CONFIG = {
+window.SAFE_SPACE_CONFIG = {
   apiUrl: "${api_url}",
   region: "${AWS_REGION}",
   mapsApiKey: "${maps_api_key}",
@@ -102,6 +102,6 @@ aws s3 sync "$FRONTEND_DIR" "s3://${bucket_name}" \
 
 printf '  %s✓%s Frontend sincronizado con s3://%s\n' "$GREEN" "$RESET" "$bucket_name"
 
-printf '\n%sAbre tu Safe Spot:%s\n' "$BOLD" "$RESET"
+printf '\n%sAbre tu Safe Space:%s\n' "$BOLD" "$RESET"
 printf '  %s\n' "$website_url"
 printf '\n%sAPI: %s%s\n\n' "$DIM" "$api_url" "$RESET"
