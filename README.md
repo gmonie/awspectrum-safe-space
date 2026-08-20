@@ -79,8 +79,8 @@ en un sitio, Bedrock en otro y el mapa en un tercero.
 Abre **AWS CloudShell** en `us-east-1` y ejecuta:
 
 ```bash
-git clone https://github.com/itsebasvz/safe-spot-aws-spectrum.git
-cd safe-spot-aws-spectrum
+git clone https://github.com/itsebasvz/awspectrum-safe-spot.git
+cd awspectrum-safe-spot
 
 ./scripts/preflight.sh          # comprueba tu entorno. Solo lee, no cambia nada.
 sam build                       # ~2 s
@@ -145,7 +145,7 @@ aplicación sigue funcionando y tú puedes seguir con el workshop.
 ## Estructura del repo
 
 ```
-safe-spot-aws-spectrum/
+awspectrum-safe-spot/
 ├── template.yaml            # el plano: todos los recursos de AWS
 ├── samconfig.toml           # para que 'sam deploy' no haga preguntas
 │
