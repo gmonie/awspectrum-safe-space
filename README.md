@@ -1,275 +1,218 @@
 # 🌈 Safe Space
 
-**Mapa comunitario de espacios inclusivos para la comunidad LGBTQ+ · Ciudad de México**
+**Directorio de recursos inclusivos con procedencia visible · Ciudad de México**
 
-Workshop de [AWS Spectrum LATAM](https://linktr.ee/awspectrum.latam) · *Cloud • Community • Diversity*
+Workshop de [AWSpectrum LATAM](https://linktr.ee/awspectrum.latam) · *Cloud • Community • Diversity*
 
-En las próximas tres horas vas a desplegar, inspeccionar, entender y modificar una aplicación
-serverless real en tu propia cuenta de AWS. No vas a escribirla desde cero: el objetivo es que al
-terminar puedas **contar la historia de cómo viaja una petición por el sistema** y por qué existe cada
-servicio.
+Safe Space ayuda a encontrar organizaciones, servicios de apoyo, centros comunitarios y canales de
+derivación. Algunos recursos tienen una ubicación pública y aparecen en el mapa; otros funcionan por
+teléfono, chat o canalización y se muestran únicamente como fichas de contacto.
 
----
+> **Safe Space no certifica que un recurso sea universalmente seguro ni que esté disponible en todo
+> momento.** El directorio muestra la fuente, la fecha de revisión y el estado de publicación. Las
+> derivaciones a refugios nunca publican la dirección protegida.
 
-## Qué hace Safe Space
+## Qué vas a construir
 
-Un mapa convencional responde muy bien *dónde está un lugar*. No responde lo que a veces más importa:
-¿tiene baño neutral?, ¿respetan pronombres?, ¿es accesible?, ¿la comunidad lo reporta como cómodo
-para ir en pareja?
-
-Safe Space combina tres cosas: **ubicación** (Amazon Location), **información comunitaria**
-(DynamoDB) y **búsqueda en lenguaje natural** (Amazon Bedrock).
-
-> **Safe Space no certifica que un lugar sea universalmente seguro.** Recoge señales reportadas por la
-> comunidad, con su procedencia y su fecha. Esa distinción es parte del producto.
-
-### Qué hace —y qué no hace— la IA
-
-Escribes esto:
-
-> *«Busco un café tranquilo para una cita con mi novia y me importa que tenga baño neutral.»*
-
-Y Amazon Bedrock devuelve **solo esto**:
-
-```json
-{ "category": "cafe", "signals": ["neutral_bathroom", "quiet"] }
-```
-
-Ahí termina su trabajo. El modelo **no elige lugares, no consulta la base de datos y no inventa
-espacios**. Nuestro código valida esa respuesta contra una lista de señales permitidas y el navegador
-busca coincidencias entre los lugares que ya existen en tu tabla.
-
-Es una separación deliberada: **la IA interpreta la necesidad, la comunidad aporta la información y
-el código toma la decisión final.**
-
----
-
-## Arquitectura
+En tres horas vas a desplegar, inspeccionar, entender y modificar una aplicación serverless real en
+AWS. No la escribes desde cero: el objetivo es poder contar la historia de una petición y explicar
+por qué cada servicio existe.
 
 ```mermaid
 flowchart TB
     U["👤 Persona"] --> F["🌈 Safe Space<br>HTML + CSS + JS"]
     S3["Amazon S3<br>sitio estático"] --> F
-    F --> LOC["Amazon Location<br>Maps V2 + Places V2"]
+    F --> LOC["Amazon Location<br>mapa opcional"]
     F --> API["API Gateway<br>HTTP API"]
-    API --> PF["PlacesFunction<br>AWS Lambda"]
+    API --> RF["PlacesFunction<br>AWS Lambda"]
     API --> SF["SearchFunction<br>AWS Lambda"]
-    PF --> DB["Amazon DynamoDB"]
+    RF --> DB["Amazon DynamoDB<br>recursos"]
     SF --> BR["Amazon Bedrock<br>Nova Micro"]
 ```
 
 | Servicio | Para qué lo usamos |
 | --- | --- |
-| **Amazon S3** | Alojar el frontend estático. |
-| **Amazon Location** | Renderizar el mapa y normalizar ubicaciones. |
-| **API Gateway HTTP API** | Exponer `GET /places`, `POST /places` y `POST /search`. |
-| **AWS Lambda** | Dos funciones pequeñas: lugares y búsqueda. |
-| **Amazon DynamoDB** | Persistir espacios y señales comunitarias. |
-| **Amazon Bedrock · Nova Micro** | Extraer intención desde lenguaje natural. |
+| **Amazon S3** | Alojar la interfaz estática. |
+| **Amazon Location** | Dibujar ubicaciones públicas, fuera del flujo de datos de la API. |
+| **API Gateway HTTP API** | Exponer `/resources` y `/search`. |
+| **AWS Lambda** | Validar propuestas y extraer intención de búsqueda. |
+| **Amazon DynamoDB** | Persistir recursos aprobados y propuestas pendientes. |
+| **Amazon Bedrock · Nova Micro** | Convertir lenguaje natural en criterios permitidos. |
 | **AWS SAM** | Describir y desplegar toda la infraestructura. |
-| **AWS CloudShell** | El mismo entorno para todo el mundo, sin instalar nada. |
 
-Todo vive en **`us-east-1`**. Una sola región evita el error más común del workshop: tener la Lambda
-en un sitio, Bedrock en otro y el mapa en un tercero.
-
----
+Todo vive en **`us-east-1`**.
 
 ## Puesta en marcha
 
-Abre **AWS CloudShell** en `us-east-1` y ejecuta:
+Abre AWS CloudShell en `us-east-1` y ejecuta:
 
 ```bash
 git clone https://github.com/itsebasvz/awspectrum-safe-space.git
 cd awspectrum-safe-space
 
-./scripts/preflight.sh          # comprueba tu entorno. Solo lee, no cambia nada.
-sam build                       # ~2 s
-sam deploy                      # ~1 min 10 s
-./scripts/publish-frontend.sh   # genera config.js y sube el sitio a S3
-python3 scripts/seed.py         # carga los 18 lugares en DynamoDB
+./scripts/preflight.sh
+sam build
+sam deploy
+./scripts/publish-frontend.sh
+python3 scripts/seed.py
 ```
 
-`publish-frontend.sh` te imprime la URL de tu Safe Space al terminar. Ábrela.
+`publish-frontend.sh` imprime la URL de tu aplicación. El seed contiene recursos aprobados con
+fuentes directas revisadas; las propuestas nuevas no se publican automáticamente.
 
-<details>
-<summary><strong>¿Qué hace cada comando?</strong></summary>
+Para reemplazar expresamente todo el contenido anterior de la tabla:
 
-| Comando | Qué ocurre por debajo |
-| --- | --- |
-| `preflight.sh` | Verifica credenciales, región, herramientas, acceso a Bedrock y a Location, y si algo de tu cuenta bloquearía el despliegue. **Reporta problemas; no los arregla por su cuenta.** |
-| `sam build` | Prepara el código de las Lambdas en `.aws-sam/build/`. Tarda un par de segundos porque no hay dependencias que instalar. |
-| `sam deploy` | SAM traduce `template.yaml` a CloudFormation y CloudFormation crea la stack. Míralo en la consola: **CloudFormation → Stacks → safe-space**. |
-| `publish-frontend.sh` | Lee los Outputs de la stack, obtiene el **valor** de la API key de Amazon Location (CloudFormation crea la key pero no revela su valor), escribe `frontend/config.js` y sincroniza la carpeta al bucket. |
-| `seed.py` | Valida `data/seed.json` contra la taxonomía real de tu stack y lo escribe en DynamoDB. Es idempotente: puedes repetirlo. |
-
-</details>
-
----
-
-## Las tres rutas
-
-```
-GET  /places   → lee todos los espacios
-POST /places   → registra un espacio nuevo
-POST /search   → convierte lenguaje natural en criterios
+```bash
+python3 scripts/seed.py --replace
 ```
 
-Pruébalas desde CloudShell. Sustituye `$API` por el Output `ApiUrl` de tu stack:
+`--replace` es deliberado: elimina los items existentes antes de cargar la semilla nueva.
+
+## Las rutas de la API
+
+```text
+GET  /resources  → devuelve recursos aprobados
+POST /resources  → guarda una propuesta como pending
+POST /search     → convierte lenguaje natural en criterios
+```
+
+Obtén la URL de tu stack:
 
 ```bash
 API=$(aws cloudformation describe-stacks --stack-name safe-space \
       --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
-
-curl "$API/places" | head -c 400
-
-curl -X POST "$API/search" -H 'content-type: application/json' \
-  -d '{"query":"un bar lésbico donde pueda ir con mi pareja"}'
 ```
 
-Deberías ver algo así:
+Lista recursos:
+
+```bash
+curl "$API/resources"
+```
+
+Busca apoyo:
+
+```bash
+curl -X POST "$API/search" -H 'content-type: application/json' \
+  -d '{"query":"necesito apoyo psicológico para una persona trans y quiero saber a dónde llamar"}'
+```
+
+Una respuesta típica tiene esta forma:
 
 ```json
 {
-  "query": "un bar lésbico donde pueda ir con mi pareja",
-  "criteria": { "category": "bar", "signals": ["lgbtq_space", "couples_friendly"] },
+  "query": "necesito apoyo psicológico para una persona trans",
+  "criteria": {
+    "category": "support_service",
+    "services": ["psychological_support"],
+    "signals": ["trans_inclusive"]
+  },
   "source": "bedrock"
 }
 ```
 
-Ese `source` es importante. Si Bedrock no responde —permisos, cuota, un fallo pasajero— la función
-**no devuelve un error**: cae a una extracción por palabras clave y marca `"source": "fallback"`. La
-aplicación sigue funcionando y tú puedes seguir con el workshop.
+Si Bedrock falla, `source` cambia a `fallback` y la extracción determinista mantiene el flujo.
 
----
+## Contrato de un recurso
 
-## Estructura del repo
-
-```
-awspectrum-safe-space/
-├── template.yaml            # el plano: todos los recursos de AWS
-├── samconfig.toml           # para que 'sam deploy' no haga preguntas
-│
-├── functions/
-│   ├── places/app.py        # GET /places · POST /places → DynamoDB
-│   └── search/app.py        # POST /search → Bedrock + validación
-│
-├── frontend/
-│   ├── index.html
-│   ├── styles.css
-│   ├── app.js               # donde el navegador toca AWS
-│   └── config.example.js    # config.js real lo genera publish-frontend.sh
-│
-├── data/seed.json           # 18 espacios de CDMX con su procedencia
-│
-└── scripts/
-    ├── preflight.sh
-    ├── seed.py
-    ├── publish-frontend.sh
-    └── cleanup.sh
+```json
+{
+  "id": "usipt-cdmx",
+  "name": "USIPT · Unidad de Salud Integral para Personas Trans",
+  "category": "support_service",
+  "services": ["psychological_support", "legal_support", "healthcare"],
+  "signals": ["trans_inclusive"],
+  "address": "solo si la ubicación es pública",
+  "latitude": 19.4545577,
+  "longitude": -99.1509918,
+  "contact": {
+    "phone": "55 5132 1250",
+    "website": "https://…"
+  },
+  "provenance": {
+    "type": "direct_source",
+    "sourceUrl": "https://…",
+    "checkedAt": "2026-08-19"
+  },
+  "publicationStatus": "approved"
+}
 ```
 
-### Una sola fuente de verdad para la taxonomía
+`latitude` y `longitude` son opcionales, pero deben aparecer juntas. Una `shelter_referral` no
+puede tener dirección ni coordenadas: la seguridad de quien usa el refugio está por encima de la
+completitud del mapa.
 
-Las señales de inclusión (`lgbtq_space`, `neutral_bathroom`, `accessible`, …) están declaradas **una
-vez**, en el parámetro `AllowedSignals` de `template.yaml`. De ahí llegan:
+Los registros aprobados requieren `provenance.type = "direct_source"`, `sourceUrl` y `checkedAt`.
+Una propuesta enviada desde el formulario recibe `publicationStatus = "pending"` y
+`provenance.type = "community_submission"`; nunca se presenta como verificada.
 
-- a las dos Lambdas, por variable de entorno;
-- al frontend, a través de un Output de la stack que `publish-frontend.sh` escribe en `config.js`.
+## Qué hace —y qué no hace— la IA
 
-Por eso añadir una señal nueva es cambiar una línea y volver a desplegar. Los filtros y el formulario
-aparecen solos.
+Bedrock convierte una frase en `{category, services, signals}`. No consulta DynamoDB, no elige
+recursos, no inventa teléfonos y no afirma que una organización esté abierta o disponible.
 
----
+La allowlist de `template.yaml` valida la respuesta antes de que llegue al navegador. Después,
+`frontend/app.js` filtra los recursos aprobados. La IA interpreta; el código decide.
 
-## Experimentar
+## Taxonomía
 
-Durante la fase de experimentación, para cambios en el **código** de las Lambdas:
+La fuente de verdad vive en `template.yaml`:
+
+- categorías: `organization`, `support_service`, `community_center`, `shelter_referral`;
+- servicios: `psychological_support`, `legal_support`, `healthcare`, `referral`,
+  `community_network`, `shelter_support`;
+- señales: `lgbtq_affirming`, `trans_inclusive`, `free`, `open_24_7`, `contact_only`.
+
+La plantilla pasa las tres listas a las Lambdas y `publish-frontend.sh` las escribe en
+`frontend/config.js`. Ese archivo está en `.gitignore` porque contiene la API key de Amazon
+Location y nunca debe commitearse.
+
+## Probar cambios
+
+Comprobaciones locales sin tocar AWS:
+
+```bash
+python3 -m unittest discover -s tests -v
+node --check frontend/app.js
+sam validate --lint
+```
+
+Para modificar código de Lambda durante el workshop:
 
 ```bash
 sam sync --code
 ```
 
-Sube solo el código, en un par de segundos, sin rehacer la infraestructura. Te pedirá confirmar que
-es una stack de desarrollo: responde `Y`. (Te avisa porque `sync` provoca *drift* respecto a
-CloudFormation. En una stack de producción no lo harías.)
+Para modificar la infraestructura o la taxonomía:
 
-Si cambias `template.yaml` —por ejemplo para añadir una señal— entonces sí necesitas `sam deploy`.
+```bash
+sam deploy
+./scripts/publish-frontend.sh
+```
 
-**Cosas que merece la pena probar:**
+El reto recomendado es añadir una ficha de contacto o derivación sin coordenadas y demostrar que
+aparece en el directorio, pero no como pin.
 
-1. Añade una señal a `AllowedSignals` en `template.yaml`, despliega y mira cómo aparece sola en los
-   filtros y en el formulario. Añádele una etiqueta bonita en `SIGNAL_LABELS` de `frontend/app.js`.
-2. Cambia el `SYSTEM_PROMPT` de `functions/search/app.py` y observa cómo cambia la interpretación.
-   Fíjate en que, hagas lo que hagas, `validate_criteria()` sigue descartando lo que no está en la
-   allowlist.
-3. Manda a `POST /places` una señal inventada y mira qué responde la API.
-4. Abre **CloudWatch → Log groups → /aws/lambda/safe-space-search** y sigue una petición.
+## Workshop vs. producción
 
----
+| En el workshop | En producción |
+| --- | --- |
+| Sitio estático público de S3 | HTTPS con CloudFront o Amplify y bucket privado |
+| API sin autenticación | Autenticación, autorización y límites de tasa |
+| `Scan` de DynamoDB sobre pocos recursos | Índices y patrones de acceso diseñados |
+| Seed aprobado + propuestas `pending` | Moderación, auditoría y proceso de actualización |
+| Coordenadas solo cuando son públicas | Revisión de privacidad y amenaza por recurso |
+| Una base de datos por participante | Backend comunitario compartido |
 
 ## Limpieza
 
-El cleanup es parte del workshop, no una nota al pie.
+El cleanup es parte del workshop:
 
 ```bash
 ./scripts/cleanup.sh
 ```
 
-Vacía el bucket del sitio —CloudFormation no puede borrar un bucket con objetos dentro— y ejecuta
-`sam delete`. Se lleva la API, las Lambdas, la tabla, la API key y los log groups.
-
-Compruébalo en **CloudFormation → Stacks**: `safe-space` ya no debería aparecer.
-
----
-
-## Workshop vs. producción
-
-Este repo toma atajos conscientes. Vale la pena saber cuáles son, para no aprender por accidente que
-«lo más fácil para un workshop» es «la arquitectura correcta para cualquier sistema real».
-
-| En el workshop | En producción |
-| --- | --- |
-| Sitio web de S3, público y por HTTP | HTTPS con CloudFront o Amplify Hosting, bucket privado |
-| API sin autenticación | Autenticación, autorización y límites de tasa |
-| API key de Location en el navegador | Restricciones por referrer y rotación según tu modelo de amenazas |
-| `Scan` de DynamoDB sobre ~20 items | Patrones de acceso e índices diseñados |
-| Las recomendaciones se publican al instante | Moderación y estados `pending` / `approved` |
-| Una base de datos por participante | Backend comunitario compartido |
-| 18 lugares curados a mano | Pipeline continuo de datos y revisión |
-
----
-
-## Costo
-
-El workload es minúsculo: alrededor de **USD $0.01 por participante** antes de créditos y capa
-gratuita. Con los créditos de una cuenta nueva, el costo de bolsillo esperado es **$0.00**.
-
-Nada de lo que despliegas tiene costo fijo por hora: no hay EC2, ni RDS, ni NAT Gateway, ni capacidad
-reservada. DynamoDB y Bedrock son de pago por uso, y los log groups tienen retención de 7 días.
-
-El único detalle con costo apreciable es Amazon Location Places cuando **guardas** un resultado: si
-obtienes nombre y coordenadas de Places y los persistes, hay que usar `IntendedUse=Storage`. Es lo
-que hicimos para generar `data/seed.json`.
-
----
-
-## Sobre los datos
-
-Cada registro de `data/seed.json` declara de dónde viene:
-
-| `provenance.type` | Significa |
-| --- | --- |
-| `official_source` | Información pública de la institución responsable |
-| `community_report` | Reporte enviado desde el formulario de la app |
-| `community_draft` | **Borrador del equipo, pendiente de verificación** |
-
-Las direcciones y coordenadas no están escritas a mano: salen de Amazon Location Places V2.
-
-> ⚠️ Los registros marcados como `community_draft` son un punto de partida para el workshop y deben
-> verificarse antes de presentar Safe Space como una fuente fiable. Una señal reportada sin
-> procedencia clara no es información: es un rumor con coordenadas.
-
----
+Vacía el bucket y ejecuta `sam delete`. Antes de borrar recursos de una cuenta compartida, confirma
+que la stack no esté siendo utilizada.
 
 ## Licencia
 
