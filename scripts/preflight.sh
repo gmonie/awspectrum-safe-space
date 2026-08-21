@@ -25,6 +25,17 @@ fi
 failures=0
 warnings=0
 
+# El entorno oficial del taller es GitHub Codespaces; CloudShell es el plan B. Los mensajes
+# de ayuda cambian según dónde estés, porque el comando que resuelve el problema no es el
+# mismo: en Codespaces hay que autenticarse a mano y en CloudShell no.
+if [[ -n "${CODESPACES:-}" ]]; then
+  ENVIRONMENT="codespaces"
+elif [[ "${AWS_EXECUTION_ENV:-}" == *CloudShell* ]]; then
+  ENVIRONMENT="cloudshell"
+else
+  ENVIRONMENT="otro"
+fi
+
 pass()  { printf '  %s✓%s %s\n' "$GREEN" "$RESET" "$1"; }
 warn()  { printf '  %s!%s %s\n' "$YELLOW" "$RESET" "$1"; warnings=$((warnings + 1)); }
 fail()  { printf '  %s✗%s %s\n' "$RED" "$RESET" "$1"; failures=$((failures + 1)); }
@@ -38,16 +49,28 @@ printf '%sHerramientas%s\n' "$BOLD" "$RESET"
 # --------------------------------------------------------------------------
 if command -v aws >/dev/null 2>&1; then
   pass "AWS CLI $(aws --version 2>&1 | cut -d' ' -f1)"
+
+  # 'aws login' —cómo se autentica el taller desde Codespaces— existe a partir de la
+  # versión 2.32.0. Es aviso y no bloqueo: en CloudShell las credenciales ya vienen dadas y
+  # allí nunca se ejecuta ese comando.
+  aws_version="$(aws --version 2>&1 | sed -n 's#^aws-cli/\([0-9.]*\).*#\1#p')"
+  if [[ "${aws_version%%.*}" != "2" ]]; then
+    warn "Tienes AWS CLI ${aws_version:-desconocida}; el taller usa la v2."
+    hint "'aws login' solo existe en la v2. Sin ella tendrás que usar CloudShell."
+  elif [[ "$(printf '%s\n2.32.0\n' "$aws_version" | sort -V | head -1)" != "2.32.0" ]]; then
+    warn "AWS CLI $aws_version es anterior a 2.32.0 y no trae 'aws login'."
+    hint "Actualízala, o continúa desde AWS CloudShell (plan B del README)."
+  fi
 else
   fail "No se encontró la AWS CLI."
-  hint "En AWS CloudShell viene preinstalada. ¿Estás dentro de CloudShell?"
+  hint "El Dev Container del taller ya la trae. ¿Abriste el Codespace del repositorio?"
 fi
 
 if command -v sam >/dev/null 2>&1; then
   pass "AWS SAM CLI $(sam --version 2>&1 | awk '{print $NF}')"
 else
   fail "No se encontró la SAM CLI."
-  hint "En AWS CloudShell viene preinstalada. ¿Estás dentro de CloudShell?"
+  hint "El Dev Container del taller ya la trae. ¿Abriste el Codespace del repositorio?"
 fi
 
 if command -v python3 >/dev/null 2>&1; then
@@ -56,7 +79,7 @@ if command -v python3 >/dev/null 2>&1; then
     pass "boto3 disponible (lo necesita scripts/seed.py)"
   else
     fail "boto3 no está instalado para python3."
-    hint "Instálalo con: pip3 install --user boto3"
+    hint "El Dev Container ya lo trae. Fuera de él: pip3 install --user boto3"
   fi
 else
   fail "No se encontró python3."
@@ -71,8 +94,31 @@ if identity="$(aws sts get-caller-identity --output json 2>/dev/null)"; then
   pass "Credenciales activas · cuenta ${account}"
   hint "$arn"
 else
-  fail "No hay credenciales de AWS utilizables."
-  hint "En CloudShell las credenciales son automáticas. Fuera de CloudShell: aws configure"
+  fail "AWS todavía no sabe quién eres."
+  case "$ENVIRONMENT" in
+    codespaces)
+      hint ""
+      hint "Desde este Codespace, inicia sesión con:"
+      hint "    aws login --remote --region ${EXPECTED_REGION}"
+      hint ""
+      hint "Después comprueba tu identidad:"
+      hint "    aws sts get-caller-identity"
+      hint ""
+      hint "Y vuelve a ejecutar:"
+      hint "    ./scripts/preflight.sh"
+      hint ""
+      hint "Si tu cuenta usa IAM Identity Center, el comando es 'aws sso login'."
+      ;;
+    cloudshell)
+      hint "En CloudShell las credenciales deberían ser automáticas."
+      hint "Si no lo son, comprueba que iniciaste sesión en la consola de AWS."
+      ;;
+    *)
+      hint "Inicia sesión con: aws login --region ${EXPECTED_REGION}"
+      hint "En una máquina remota o sin navegador: aws login --remote --region ${EXPECTED_REGION}"
+      hint "Si tu cuenta usa IAM Identity Center: aws sso login"
+      ;;
+  esac
   account=""
 fi
 
@@ -82,8 +128,8 @@ if [[ "$effective_region" == "$EXPECTED_REGION" ]]; then
   pass "Región ${EXPECTED_REGION}"
 else
   fail "La región efectiva es '${effective_region:-vacía}', pero el workshop usa ${EXPECTED_REGION}."
-  hint "Cambia la región en la esquina superior derecha de la consola y reabre CloudShell,"
-  hint "o exporta AWS_REGION=${EXPECTED_REGION} antes de continuar."
+  hint "Exporta la región antes de continuar:"
+  hint "    export AWS_REGION=${EXPECTED_REGION}"
 fi
 
 # --------------------------------------------------------------------------

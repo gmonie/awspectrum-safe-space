@@ -6,6 +6,13 @@ samconfig-local.toml
 # Contiene la API key de Amazon Location de tu cuenta: nunca se commitea.
 frontend/config.js
 
+# Credenciales. Nada de esto debe salir nunca del Codespace: `aws login` deja una sesión
+# temporal en el disco de tu máquina y ahí se queda.
+.aws/
+credentials
+.env
+*.env
+
 # Python
 __pycache__/
 *.py[cod]
