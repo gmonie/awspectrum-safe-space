@@ -1,18 +1,23 @@
 /* ---------------------------------------------------------------------------
-   Safe Space — lógica del frontend
+   Safe Space — lógica del directorio
    ---------------------------------------------------------------------------
 
    Aquí es donde el navegador toca AWS. Hay exactamente cuatro puntos de
    contacto y vale la pena tenerlos localizados:
 
-     1. Amazon Location  ->  el estilo del mapa que carga MapLibre
-     2. GET  /places     ->  los pines
-     3. POST /search     ->  Amazon Bedrock interpreta lo que escribiste
-     4. POST /places     ->  registrar un espacio nuevo
+     1. Amazon Location    ->  el estilo del mapa que carga MapLibre
+     2. GET  /resources    ->  las fichas del directorio
+     3. POST /search       ->  Amazon Bedrock interpreta lo que escribiste
+     4. POST /resources    ->  proponer un recurso, que queda pendiente
 
-   Una idea importante: el emparejamiento entre los criterios que devuelve
-   Bedrock y los lugares NO ocurre en la nube. Ocurre en `applyFilters()`, unas
-   líneas más abajo. El modelo interpreta; este código decide.
+   Dos ideas importantes:
+
+   - El emparejamiento entre los criterios que devuelve Bedrock y los recursos
+     NO ocurre en la nube. Ocurre en `applyFilters()`, unas líneas más abajo.
+     El modelo interpreta; este código decide.
+   - El mapa es una vista parcial del directorio, no el directorio. Solo se
+     dibuja un pin cuando el recurso trae una ubicación pública; una línea
+     telefónica o un refugio existen en la lista sin aparecer en el mapa.
 --------------------------------------------------------------------------- */
 
 "use strict";
@@ -30,33 +35,32 @@ const MAP_ZOOM = 12.4;
 // Etiquetas legibles. Si añades una señal en template.yaml y no la añades
 // aquí, la interfaz mostrará su identificador tal cual en vez de romperse.
 const SIGNAL_LABELS = {
-  lgbtq_space: "🌈 Espacio LGBTQ+",
-  neutral_bathroom: "🚻 Baño neutral",
-  accessible: "♿ Accesible",
-  pronouns_respected: "🏷️ Respetan pronombres",
-  couples_friendly: "💞 Cómodo en pareja",
-  quiet: "🤫 Tranquilo",
-  inclusive_healthcare: "🩺 Salud inclusiva",
+  lgbtq_affirming: "🌈 Atención LGBTQ+",
+  trans_inclusive: "🏳️‍⚧️ Inclusivo para personas trans",
+  free: "🫶 Gratuito",
+  open_24_7: "🕒 24/7",
+  contact_only: "☎️ Contacto / derivación",
 };
 
 const CATEGORY_LABELS = {
-  cafe: "Café",
-  restaurant: "Restaurante",
-  bar: "Bar",
-  bookstore: "Librería",
-  clinic: "Clínica",
+  organization: "Organización",
+  support_service: "Servicio de apoyo",
   community_center: "Centro comunitario",
-  museum: "Museo",
-  park: "Parque",
-  coworking: "Coworking",
-  shop: "Tienda",
+  shelter_referral: "Derivación a refugio",
+};
+
+const SERVICE_LABELS = {
+  psychological_support: "Apoyo psicológico",
+  legal_support: "Apoyo legal",
+  healthcare: "Salud",
+  referral: "Canalización",
+  community_network: "Red comunitaria",
+  shelter_support: "Refugio",
 };
 
 const PROVENANCE_LABELS = {
-  official_source: "Fuente oficial",
-  first_party: "Informado por el lugar",
-  community_report: "Reporte de la comunidad",
-  community_draft: "Borrador del equipo · sin verificar",
+  direct_source: "Fuente directa",
+  community_submission: "Pendiente de revisión",
 };
 
 // ---------------------------------------------------------------------------
@@ -64,9 +68,10 @@ const PROVENANCE_LABELS = {
 // ---------------------------------------------------------------------------
 
 const state = {
-  places: [],
-  markers: new Map(), // id del lugar -> maplibregl.Marker
+  resources: [],
+  markers: new Map(), // id del recurso -> maplibregl.Marker (solo los que tienen pin)
   activeSignals: new Set(),
+  activeServices: new Set(),
   activeCategory: null,
   selectedId: null,
 };
@@ -79,16 +84,21 @@ const dom = {
   searchButton: document.getElementById("search-button"),
   searchResult: document.getElementById("search-result"),
   signalFilters: document.getElementById("signal-filters"),
+  serviceFilters: document.getElementById("service-filters"),
   clearFilters: document.getElementById("clear-filters"),
   results: document.getElementById("results"),
   resultsCounter: document.getElementById("results-counter"),
   mapError: document.getElementById("map-error"),
   openForm: document.getElementById("open-form"),
-  dialog: document.getElementById("place-dialog"),
-  placeForm: document.getElementById("place-form"),
+  dialog: document.getElementById("resource-dialog"),
+  resourceForm: document.getElementById("resource-form"),
   categorySelect: document.getElementById("category-select"),
+  formServices: document.getElementById("form-services"),
   formSignals: document.getElementById("form-signals"),
+  locationFields: document.getElementById("location-fields"),
+  locationHint: document.getElementById("location-hint"),
   formError: document.getElementById("form-error"),
+  formSuccess: document.getElementById("form-success"),
   submitForm: document.getElementById("submit-form"),
   cancelForm: document.getElementById("cancel-form"),
 };
@@ -100,22 +110,30 @@ const dom = {
 function init() {
   if (!CONFIG) {
     showMapError(
-      "Falta frontend/config.js. Ejecuta ./scripts/publish-frontend.sh para generarlo " +
-        "con los datos de tu stack.",
+      "Falta frontend/config.js. Ejecuta ./scripts/publish-frontend.sh para generarlo con los datos de tu stack.",
     );
     return;
   }
 
   buildSignalFilters();
+  buildServiceFilters();
   buildFormControls();
   initMap();
-  loadPlaces();
+  loadResources();
 
   dom.searchForm.addEventListener("submit", handleSearch);
   dom.clearFilters.addEventListener("click", clearAllFilters);
-  dom.openForm.addEventListener("click", () => dom.dialog.showModal());
+  dom.openForm.addEventListener("click", openResourceDialog);
   dom.cancelForm.addEventListener("click", () => dom.dialog.close());
-  dom.placeForm.addEventListener("submit", handleCreatePlace);
+  dom.categorySelect.addEventListener("change", updateLocationFields);
+  dom.resourceForm.addEventListener("submit", handleCreateResource);
+}
+
+function openResourceDialog() {
+  dom.formError.textContent = "";
+  dom.formSuccess.textContent = "";
+  dom.dialog.showModal();
+  updateLocationFields();
 }
 
 // ---------------------------------------------------------------------------
@@ -137,19 +155,22 @@ function initMap() {
   });
 
   map.addControl(new maplibregl.NavigationControl(), "top-right");
-
   map.on("error", (event) => {
     console.error("MapLibre:", event.error);
     showMapError(
-      "El mapa no cargó. Revisa que la API key de Amazon Location sea válida y que " +
-        "config.js apunte a tu región.",
+      "El mapa no cargó. Revisa que la API key de Amazon Location sea válida y que config.js apunte a tu región.",
     );
   });
 
   // Comodidad para el formulario: un clic en el mapa rellena las coordenadas.
+  // Salvo cuando están desactivadas, que es lo que ocurre al elegir una
+  // derivación a refugio: ahí el clic no debe poder escribir una ubicación.
   map.on("click", (event) => {
-    dom.placeForm.elements.latitude.value = event.lngLat.lat.toFixed(5);
-    dom.placeForm.elements.longitude.value = event.lngLat.lng.toFixed(5);
+    const latitude = dom.resourceForm.elements.latitude;
+    const longitude = dom.resourceForm.elements.longitude;
+    if (latitude.disabled || longitude.disabled) return;
+    latitude.value = event.lngLat.lat.toFixed(5);
+    longitude.value = event.lngLat.lng.toFixed(5);
   });
 }
 
@@ -159,57 +180,78 @@ function showMapError(message) {
 }
 
 // ---------------------------------------------------------------------------
-// 5. Datos — GET /places
+// 5. Datos — GET /resources
 // ---------------------------------------------------------------------------
 
-async function loadPlaces() {
+async function loadResources() {
   try {
-    const data = await callApi("/places");
-    state.places = data.places;
+    const data = await callApi("/resources");
+    state.resources = data.resources;
     renderMarkers();
     applyFilters();
   } catch (error) {
     console.error(error);
     dom.results.innerHTML =
-      '<li class="empty">No se pudieron cargar los espacios. ¿Ejecutaste scripts/seed.py?</li>';
+      '<li class="empty">No se pudieron cargar los recursos. ¿Ejecutaste scripts/seed.py?</li>';
   }
+}
+
+/**
+ * ¿Este recurso se puede dibujar en el mapa?
+ *
+ * Que la respuesta sea "no" es normal, no un error: significa que el recurso
+ * funciona por teléfono o que su dirección está protegida a propósito.
+ *
+ * Se descarta `null` explícitamente porque `Number(null)` es 0, y un 0 sí es
+ * finito: sin esa comprobación, una ficha con la latitud a null acabaría con
+ * un pin en mitad del Golfo de Guinea.
+ */
+function hasPublicLocation(resource) {
+  return [resource.latitude, resource.longitude].every(
+    (value) => value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value)),
+  );
 }
 
 function renderMarkers() {
   state.markers.forEach((marker) => marker.remove());
   state.markers.clear();
 
-  for (const place of state.places) {
+  for (const resource of state.resources) {
+    if (!hasPublicLocation(resource)) continue;
+
     const element = document.createElement("div");
     element.className = "marker";
-    element.title = place.name;
+    element.title = resource.name;
 
     const marker = new maplibregl.Marker({ element })
-      .setLngLat([place.longitude, place.latitude])
-      .setPopup(new maplibregl.Popup({ offset: 16 }).setHTML(popupHtml(place)))
+      .setLngLat([Number(resource.longitude), Number(resource.latitude)])
+      .setPopup(new maplibregl.Popup({ offset: 16 }).setHTML(popupHtml(resource)))
       .addTo(map);
 
-    element.addEventListener("click", () => selectPlace(place.id));
-    state.markers.set(place.id, marker);
+    element.addEventListener("click", () => selectResource(resource.id));
+    state.markers.set(resource.id, marker);
   }
 }
 
-function popupHtml(place) {
-  const signals = place.signals
+function popupHtml(resource) {
+  const serviceTags = (resource.services ?? [])
+    .map((service) => `<span class="tag">${escapeHtml(serviceLabel(service))}</span>`)
+    .join("");
+  const signalTags = (resource.signals ?? [])
     .map((signal) => `<span class="tag">${escapeHtml(signalLabel(signal))}</span>`)
     .join("");
-
-  const provenance = place.provenance ?? {};
-  const provenanceLabel = PROVENANCE_LABELS[provenance.type] ?? provenance.type ?? "Sin procedencia";
+  const provenance = resource.provenance ?? {};
+  const sourceLink = safeHref(provenance.sourceUrl)
+    ? `<a class="popup__source" href="${escapeHtml(provenance.sourceUrl)}" target="_blank" rel="noreferrer">Ver fuente directa</a>`
+    : "";
 
   return `
-    <div class="popup__name">${escapeHtml(place.name)}</div>
-    <div class="result__meta">${escapeHtml(categoryLabel(place.category))} · ${escapeHtml(place.address ?? "")}</div>
-    ${place.communityNote ? `<p class="popup__note">${escapeHtml(place.communityNote)}</p>` : ""}
-    <div class="result__signals">${signals}</div>
-    <p class="popup__provenance">
-      ${escapeHtml(provenanceLabel)} · verificado ${escapeHtml(provenance.verifiedAt ?? "—")}
-    </p>
+    <div class="popup__name">${escapeHtml(resource.name)}</div>
+    <div class="result__meta">${escapeHtml(categoryLabel(resource.category))} · ${escapeHtml(resource.address ?? resource.serviceArea ?? "Contacto")}</div>
+    ${resource.description ? `<p class="popup__note">${escapeHtml(resource.description)}</p>` : ""}
+    ${resource.contact ? `<p class="popup__contact">${escapeHtml(contactText(resource.contact))}</p>` : ""}
+    <div class="result__signals">${serviceTags}${signalTags}</div>
+    <p class="popup__provenance">${escapeHtml(provenanceLabel(provenance))}${provenance.checkedAt ? ` · revisado ${escapeHtml(provenance.checkedAt)}` : ""} ${sourceLink}</p>
   `;
 }
 
@@ -219,106 +261,136 @@ function popupHtml(place) {
 // Este es el punto que conviene entender bien: el resultado de la búsqueda
 // inteligente entra por aquí exactamente igual que un clic en un filtro. La IA
 // no tiene una vía privilegiada.
+//
+// Los filtros se generan desde CONFIG, que sale de los Outputs de la stack, que
+// salen de template.yaml. Añadir un servicio nuevo es editar una línea de la
+// plantilla y volver a desplegar: la interfaz aparece sola.
 // ---------------------------------------------------------------------------
 
 function buildSignalFilters() {
   dom.signalFilters.innerHTML = "";
-
-  for (const signal of CONFIG.allowedSignals) {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = "chip";
+  for (const signal of CONFIG.allowedSignals ?? []) {
+    const chip = createFilterChip(signalLabel(signal), () => toggleSignal(signal, chip));
     chip.dataset.signal = signal;
-    chip.textContent = signalLabel(signal);
-    chip.setAttribute("aria-pressed", "false");
-    chip.addEventListener("click", () => toggleSignal(signal, chip));
     dom.signalFilters.append(chip);
   }
 }
 
-function toggleSignal(signal, chip) {
-  if (state.activeSignals.has(signal)) {
-    state.activeSignals.delete(signal);
-    chip.setAttribute("aria-pressed", "false");
-  } else {
-    state.activeSignals.add(signal);
-    chip.setAttribute("aria-pressed", "true");
+function buildServiceFilters() {
+  dom.serviceFilters.innerHTML = "";
+  for (const service of CONFIG.allowedServices ?? []) {
+    const chip = createFilterChip(serviceLabel(service), () => toggleService(service, chip));
+    chip.dataset.service = service;
+    dom.serviceFilters.append(chip);
   }
+}
+
+function createFilterChip(label, onClick) {
+  const chip = document.createElement("button");
+  chip.type = "button";
+  chip.className = "chip";
+  chip.textContent = label;
+  chip.setAttribute("aria-pressed", "false");
+  chip.addEventListener("click", onClick);
+  return chip;
+}
+
+function toggleSignal(signal, chip) {
+  toggleSet(state.activeSignals, signal, chip);
   applyFilters();
+}
+
+function toggleService(service, chip) {
+  toggleSet(state.activeServices, service, chip);
+  applyFilters();
+}
+
+function toggleSet(set, value, chip) {
+  const active = set.has(value);
+  if (active) set.delete(value);
+  else set.add(value);
+  chip.setAttribute("aria-pressed", String(!active));
 }
 
 function clearAllFilters() {
   state.activeSignals.clear();
+  state.activeServices.clear();
   state.activeCategory = null;
   dom.searchResult.textContent = "";
-  for (const chip of dom.signalFilters.children) {
+  for (const chip of [...dom.signalFilters.children, ...dom.serviceFilters.children]) {
     chip.setAttribute("aria-pressed", "false");
   }
   applyFilters();
 }
 
 /**
- * Decide qué lugares se muestran y en qué orden.
+ * Decide qué recursos se muestran y en qué orden.
  *
- * Un lugar entra si coincide con la categoría pedida (cuando hay una) y con al
- * menos una de las señales activas. Se ordena por cuántas señales cumple, así
- * que los que cumplen todas quedan arriba y nunca acabas con una lista vacía
- * por pedir una señal de más.
+ * Un recurso entra si coincide con la categoría pedida (cuando hay una) y con
+ * al menos uno de los servicios o señales activos. Se ordena por cuántos
+ * cumple, así que los que cumplen todo quedan arriba y nunca acabas con una
+ * lista vacía por pedir un filtro de más.
+ *
+ * En un directorio de apoyo esa diferencia importa: exigir la coincidencia
+ * completa devolvería cero resultados a quien pide "psicólogo trans gratuito",
+ * en vez de enseñarle los que cumplen dos de las tres cosas.
  */
 function applyFilters() {
-  const wanted = [...state.activeSignals];
+  const wantedSignals = [...state.activeSignals];
+  const wantedServices = [...state.activeServices];
+  const wanted = [...wantedSignals, ...wantedServices];
 
-  const matches = state.places
-    .filter((place) => !state.activeCategory || place.category === state.activeCategory)
-    .map((place) => ({
-      place,
-      score: wanted.filter((signal) => place.signals.includes(signal)).length,
+  const matches = state.resources
+    .filter((resource) => !state.activeCategory || resource.category === state.activeCategory)
+    .map((resource) => ({
+      resource,
+      score:
+        wantedSignals.filter((signal) => (resource.signals ?? []).includes(signal)).length +
+        wantedServices.filter((service) => (resource.services ?? []).includes(service)).length,
     }))
     .filter(({ score }) => wanted.length === 0 || score > 0)
-    .sort((a, b) => b.score - a.score || a.place.name.localeCompare(b.place.name, "es"));
+    .sort((a, b) => b.score - a.score || a.resource.name.localeCompare(b.resource.name, "es"));
 
   renderResults(matches, wanted);
-  updateMarkerVisibility(new Set(matches.map(({ place }) => place.id)));
+  updateMarkerVisibility(new Set(matches.map(({ resource }) => resource.id)));
 }
 
 function renderResults(matches, wanted) {
   dom.resultsCounter.textContent =
-    matches.length === state.places.length
-      ? `${matches.length}`
-      : `${matches.length} de ${state.places.length}`;
+    matches.length === state.resources.length ? `${matches.length}` : `${matches.length} de ${state.resources.length}`;
 
   if (matches.length === 0) {
     dom.results.innerHTML =
-      '<li class="empty">Ningún espacio coincide todavía. Prueba con menos señales.</li>';
+      '<li class="empty">Ningún recurso coincide todavía. Prueba con menos filtros.</li>';
     return;
   }
 
   dom.results.innerHTML = "";
-
-  for (const { place, score } of matches) {
+  for (const { resource, score } of matches) {
     const item = document.createElement("li");
     const button = document.createElement("button");
     button.type = "button";
     button.className = "result";
-    button.setAttribute("aria-current", String(place.id === state.selectedId));
+    button.setAttribute("aria-current", String(resource.id === state.selectedId));
 
-    const signals = place.signals
-      .map((signal) => {
-        const matched = wanted.includes(signal) ? " tag--match" : "";
-        return `<span class="tag${matched}">${escapeHtml(signalLabel(signal))}</span>`;
+    const tags = [...(resource.services ?? []), ...(resource.signals ?? [])]
+      .map((tag) => {
+        const matched = wanted.includes(tag) ? " tag--match" : "";
+        return `<span class="tag${matched}">${escapeHtml(tagLabel(tag))}</span>`;
       })
       .join("");
-
-    const scoreNote =
-      wanted.length > 1 ? ` · coincide en ${score} de ${wanted.length}` : "";
+    const scoreNote = wanted.length > 1 ? ` · coincide en ${score} de ${wanted.length}` : "";
+    const locationNote = hasPublicLocation(resource) ? "📍 ubicación pública" : "☎️ contacto / derivación";
 
     button.innerHTML = `
-      <div class="result__name">${escapeHtml(place.name)}</div>
-      <div class="result__meta">${escapeHtml(categoryLabel(place.category))}${escapeHtml(scoreNote)}</div>
-      <div class="result__signals">${signals}</div>
+      <div class="result__name">${escapeHtml(resource.name)}</div>
+      <div class="result__meta">${escapeHtml(categoryLabel(resource.category))} · ${escapeHtml(locationNote)}${escapeHtml(scoreNote)}</div>
+      ${resource.serviceArea ? `<div class="result__meta">${escapeHtml(resource.serviceArea)}</div>` : ""}
+      <div class="result__signals">${tags}</div>
+      ${resource.contact ? `<div class="result__contact">${escapeHtml(contactText(resource.contact))}</div>` : ""}
+      <div class="result__provenance">${escapeHtml(provenanceLabel(resource.provenance ?? {}))}${resource.provenance?.checkedAt ? ` · ${escapeHtml(resource.provenance.checkedAt)}` : ""}</div>
     `;
-    button.addEventListener("click", () => selectPlace(place.id));
-
+    button.addEventListener("click", () => selectResource(resource.id));
     item.append(button);
     dom.results.append(item);
   }
@@ -330,13 +402,18 @@ function updateMarkerVisibility(visibleIds) {
   }
 }
 
-function selectPlace(placeId) {
-  state.selectedId = placeId;
-  const place = state.places.find((candidate) => candidate.id === placeId);
-  if (!place) return;
+function selectResource(resourceId) {
+  state.selectedId = resourceId;
+  const resource = state.resources.find((candidate) => candidate.id === resourceId);
+  if (!resource) return;
 
-  map.flyTo({ center: [place.longitude, place.latitude], zoom: 15.5 });
-  state.markers.get(placeId)?.togglePopup();
+  // Un recurso sin ubicación pública también se puede seleccionar: se marca en
+  // la lista y el mapa simplemente no se mueve. Volar a una coordenada
+  // inventada sería peor que no volar a ninguna.
+  if (hasPublicLocation(resource)) {
+    map.flyTo({ center: [Number(resource.longitude), Number(resource.latitude)], zoom: 15.5 });
+    state.markers.get(resourceId)?.togglePopup();
+  }
   applyFilters();
 }
 
@@ -346,7 +423,6 @@ function selectPlace(placeId) {
 
 async function handleSearch(event) {
   event.preventDefault();
-
   const query = dom.searchInput.value.trim();
   if (!query) return;
 
@@ -368,19 +444,25 @@ async function handleSearch(event) {
 /** Traduce los criterios que devuelve la API al estado de los filtros. */
 function applyCriteria(criteria) {
   state.activeCategory = criteria.category;
-  state.activeSignals = new Set(criteria.signals);
+  state.activeServices = new Set(criteria.services ?? []);
+  state.activeSignals = new Set(criteria.signals ?? []);
 
   for (const chip of dom.signalFilters.children) {
     chip.setAttribute("aria-pressed", String(state.activeSignals.has(chip.dataset.signal)));
   }
-
+  for (const chip of dom.serviceFilters.children) {
+    chip.setAttribute("aria-pressed", String(state.activeServices.has(chip.dataset.service)));
+  }
   applyFilters();
 }
 
 function describeCriteria(criteria, source) {
   const parts = [];
-  if (criteria.category) parts.push(`categoría <strong>${escapeHtml(categoryLabel(criteria.category))}</strong>`);
-  if (criteria.signals.length > 0) {
+  if (criteria.category) parts.push(`tipo <strong>${escapeHtml(categoryLabel(criteria.category))}</strong>`);
+  if ((criteria.services ?? []).length > 0) {
+    parts.push(`servicios <strong>${escapeHtml(criteria.services.map(serviceLabel).join(", "))}</strong>`);
+  }
+  if ((criteria.signals ?? []).length > 0) {
     parts.push(`señales <strong>${escapeHtml(criteria.signals.map(signalLabel).join(", "))}</strong>`);
   }
 
@@ -388,81 +470,132 @@ function describeCriteria(criteria, source) {
     source === "bedrock"
       ? '<span class="source-tag source-tag--bedrock">Bedrock</span>'
       : '<span class="source-tag source-tag--fallback">Plan B</span>';
-
-  const summary =
-    parts.length > 0
-      ? `Entendí: ${parts.join(" y ")}.`
-      : "No detecté criterios claros. Prueba a mencionar el tipo de lugar o una señal.";
-
+  const summary = parts.length > 0 ? `Entendí: ${parts.join(" y ")}.` : "No detecté criterios claros. Prueba con un servicio o necesidad.";
   return summary + tag;
 }
 
 // ---------------------------------------------------------------------------
-// 8. Alta de espacios — POST /places
+// 8. Propuestas — POST /resources
 // ---------------------------------------------------------------------------
 
 function buildFormControls() {
   dom.categorySelect.innerHTML = "";
-  for (const category of CONFIG.allowedCategories) {
+  for (const category of CONFIG.allowedCategories ?? []) {
     const option = document.createElement("option");
     option.value = category;
     option.textContent = categoryLabel(category);
     dom.categorySelect.append(option);
   }
 
-  dom.formSignals.innerHTML = "";
-  for (const signal of CONFIG.allowedSignals) {
+  buildFormChips(dom.formServices, CONFIG.allowedServices ?? [], serviceLabel);
+  buildFormChips(dom.formSignals, CONFIG.allowedSignals ?? [], signalLabel);
+}
+
+function buildFormChips(container, values, labeler) {
+  container.innerHTML = "";
+  for (const value of values) {
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = "chip";
-    chip.dataset.signal = signal;
-    chip.textContent = signalLabel(signal);
+    chip.dataset.value = value;
+    chip.textContent = labeler(value);
     chip.setAttribute("aria-pressed", "false");
     chip.addEventListener("click", () => {
       const pressed = chip.getAttribute("aria-pressed") === "true";
       chip.setAttribute("aria-pressed", String(!pressed));
     });
-    dom.formSignals.append(chip);
+    container.append(chip);
   }
 }
 
-async function handleCreatePlace(event) {
+/**
+ * Desactiva dirección y coordenadas cuando la categoría es un refugio.
+ *
+ * Esto es comodidad y pedagogía, no seguridad: la regla de verdad vive en la
+ * Lambda, que rechaza el POST con un 400 aunque alguien lo mande con `curl`
+ * saltándose esta pantalla.
+ */
+function updateLocationFields() {
+  const shelter = dom.categorySelect.value === "shelter_referral";
+  const latitude = dom.resourceForm.elements.latitude;
+  const longitude = dom.resourceForm.elements.longitude;
+  const address = dom.resourceForm.elements.address;
+  latitude.disabled = shelter;
+  longitude.disabled = shelter;
+  address.disabled = shelter;
+  if (shelter) {
+    latitude.value = "";
+    longitude.value = "";
+    address.value = "";
+    dom.locationHint.textContent = "Las derivaciones a refugios no guardan dirección ni coordenadas. Comparte solo un canal de contacto.";
+  } else {
+    dom.locationHint.textContent = "Si existe una ubicación pública, haz clic en el mapa para rellenar las coordenadas. Nunca publiques la dirección de un refugio.";
+  }
+}
+
+async function handleCreateResource(event) {
   event.preventDefault();
   dom.formError.textContent = "";
+  dom.formSuccess.textContent = "";
   dom.submitForm.disabled = true;
 
   // Leemos con FormData en vez de form.<campo>: un input llamado "name"
   // chocaría con la propiedad `name` del propio elemento <form>.
-  const fields = new FormData(dom.placeForm);
+  const fields = new FormData(dom.resourceForm);
   const payload = {
-    name: fields.get("name").trim(),
+    name: String(fields.get("name") ?? "").trim(),
     category: fields.get("category"),
-    address: fields.get("address").trim(),
-    latitude: Number(fields.get("latitude")),
-    longitude: Number(fields.get("longitude")),
-    communityNote: fields.get("communityNote").trim(),
-    signals: [...dom.formSignals.children]
-      .filter((chip) => chip.getAttribute("aria-pressed") === "true")
-      .map((chip) => chip.dataset.signal),
+    description: String(fields.get("description") ?? "").trim(),
+    address: String(fields.get("address") ?? "").trim(),
+    serviceArea: String(fields.get("serviceArea") ?? "").trim(),
+    services: selectedValues(dom.formServices),
+    signals: selectedValues(dom.formSignals),
+    contact: compactObject({
+      phone: String(fields.get("phone") ?? "").trim(),
+      email: String(fields.get("email") ?? "").trim(),
+      website: String(fields.get("website") ?? "").trim(),
+    }),
+    sourceUrl: String(fields.get("sourceUrl") ?? "").trim(),
   };
 
+  // Las coordenadas solo viajan si se escribieron. Mandar `latitude: 0` porque
+  // el campo estaba vacío es exactamente el error que la Lambda no puede
+  // distinguir de una coordenada legítima.
+  const latitude = String(fields.get("latitude") ?? "").trim();
+  const longitude = String(fields.get("longitude") ?? "").trim();
+  if (latitude) payload.latitude = Number(latitude);
+  if (longitude) payload.longitude = Number(longitude);
+
   try {
-    const data = await callApi("/places", { method: "POST", body: payload });
-
-    // El servidor devuelve el lugar ya normalizado, con su id y su procedencia.
-    state.places.push(data.place);
-    renderMarkers();
-    applyFilters();
-
-    dom.placeForm.reset();
-    for (const chip of dom.formSignals.children) chip.setAttribute("aria-pressed", "false");
-    dom.dialog.close();
-    selectPlace(data.place.id);
+    // La respuesta es 202, no 201: el recurso existe en la tabla pero no en el
+    // directorio, así que no se añade a `state.resources` ni se pinta un pin.
+    const data = await callApi("/resources", { method: "POST", body: payload });
+    dom.formSuccess.textContent = data.message ?? "La propuesta quedó pendiente de revisión.";
+    dom.resourceForm.reset();
+    resetFormChips();
+    updateLocationFields();
+    window.setTimeout(() => dom.dialog.close(), 1800);
   } catch (error) {
     dom.formError.textContent = error.message;
   } finally {
     dom.submitForm.disabled = false;
   }
+}
+
+function selectedValues(container) {
+  return [...container.children]
+    .filter((chip) => chip.getAttribute("aria-pressed") === "true")
+    .map((chip) => chip.dataset.value);
+}
+
+function resetFormChips() {
+  for (const chip of [...dom.formServices.children, ...dom.formSignals.children]) {
+    chip.setAttribute("aria-pressed", "false");
+  }
+}
+
+function compactObject(value) {
+  return Object.fromEntries(Object.entries(value).filter(([, item]) => item));
 }
 
 // ---------------------------------------------------------------------------
@@ -477,6 +610,10 @@ async function callApi(path, { method = "GET", body } = {}) {
     body: body ? JSON.stringify(body) : undefined,
   });
 
+  // El `.catch()` no sobra: nuestras Lambdas siempre responden JSON, pero un
+  // error que nunca llega a la Lambda —throttling de API Gateway, un fallo de
+  // integración— puede traer un cuerpo vacío o que no sea JSON. Sin esta red,
+  // la persona vería un SyntaxError del parser en vez del error de verdad.
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
@@ -484,23 +621,57 @@ async function callApi(path, { method = "GET", body } = {}) {
     const detail = data.errors?.join(" ") ?? data.message ?? `Error ${response.status}`;
     throw new Error(detail);
   }
-
   return data;
-}
-
-function signalLabel(signal) {
-  return SIGNAL_LABELS[signal] ?? signal;
 }
 
 function categoryLabel(category) {
   return CATEGORY_LABELS[category] ?? category;
 }
 
-/** Nunca insertamos texto de la API en el DOM sin escaparlo. */
+function serviceLabel(service) {
+  return SERVICE_LABELS[service] ?? service;
+}
+
+function signalLabel(signal) {
+  return SIGNAL_LABELS[signal] ?? signal;
+}
+
+function tagLabel(tag) {
+  return SERVICE_LABELS[tag] ?? SIGNAL_LABELS[tag] ?? tag;
+}
+
+function provenanceLabel(provenance) {
+  return PROVENANCE_LABELS[provenance.type] ?? provenance.type ?? "Sin procedencia";
+}
+
+function contactText(contact) {
+  return [contact.phone, contact.email, contact.website].filter(Boolean).join(" · ");
+}
+
+/**
+ * Solo deja pasar http(s) al `href` de la fuente.
+ *
+ * Un `javascript:` en ese atributo se ejecutaría al pulsar el enlace, y el
+ * texto de la ficha viene de la base de datos. Escapar el valor no basta: hay
+ * que comprobar también el esquema.
+ */
+function safeHref(value) {
+  return typeof value === "string" && /^https?:\/\//i.test(value) ? value : "";
+}
+
+/**
+ * Nunca insertamos texto de la API en el DOM sin escaparlo.
+ *
+ * Se escapan también las comillas porque parte de este texto acaba dentro de
+ * un atributo HTML, no solo entre etiquetas.
+ */
 function escapeHtml(value) {
-  const element = document.createElement("span");
-  element.textContent = String(value ?? "");
-  return element.innerHTML;
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 init();

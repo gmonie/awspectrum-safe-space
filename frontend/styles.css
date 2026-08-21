@@ -431,6 +431,18 @@ textarea {
   gap: 5px;
 }
 
+.result__contact,
+.result__provenance {
+  margin-top: 7px;
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.result__provenance {
+  color: var(--text-dim);
+}
+
 .tag {
   padding: 2px 8px;
   border-radius: 999px;
@@ -495,6 +507,17 @@ textarea {
   margin: 8px 0 0;
   font-size: 13px;
   color: var(--text-muted);
+}
+
+.popup__contact {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.popup__source {
+  color: var(--aws-orange);
 }
 
 .popup__provenance {
@@ -571,6 +594,11 @@ textarea {
   font-size: 14px;
 }
 
+.field__input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .field__hint {
   margin: -4px 0 0;
   font-size: 12px;
@@ -591,6 +619,17 @@ textarea {
 }
 
 .dialog__error:empty {
+  min-height: 0;
+}
+
+.dialog__success {
+  margin: 0;
+  font-size: 13px;
+  color: #86efac;
+  min-height: 1em;
+}
+
+.dialog__success:empty {
   min-height: 0;
 }
 

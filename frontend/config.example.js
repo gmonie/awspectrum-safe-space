@@ -23,26 +23,26 @@ window.SAFE_SPACE_CONFIG = {
   mapsApiKey: "v1.public.EJEMPLO-NO-ES-UNA-KEY-REAL",
 
   // Taxonomía vigente, tal como la declara template.yaml. El frontend dibuja
-  // los filtros y el formulario a partir de estas dos listas.
+  // los filtros y el formulario a partir de estas tres listas.
   allowedSignals: [
-    "lgbtq_space",
-    "neutral_bathroom",
-    "accessible",
-    "pronouns_respected",
-    "couples_friendly",
-    "quiet",
-    "inclusive_healthcare",
+    "lgbtq_affirming",
+    "trans_inclusive",
+    "free",
+    "open_24_7",
+    "contact_only",
   ],
   allowedCategories: [
-    "cafe",
-    "restaurant",
-    "bar",
-    "bookstore",
-    "clinic",
+    "organization",
+    "support_service",
     "community_center",
-    "museum",
-    "park",
-    "coworking",
-    "shop",
+    "shelter_referral",
+  ],
+  allowedServices: [
+    "psychological_support",
+    "legal_support",
+    "healthcare",
+    "referral",
+    "community_network",
+    "shelter_support",
   ],
 };

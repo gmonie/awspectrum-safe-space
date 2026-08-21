@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Safe Space — mapa comunitario de espacios inclusivos para la comunidad LGBTQ+ en la Ciudad de México."
+      content="Safe Space — directorio de recursos inclusivos para la comunidad LGBTQ+ en Ciudad de México."
     />
     <title>Safe Space · AWS Spectrum LATAM</title>
 
@@ -28,7 +28,7 @@
     <header class="app-header">
       <div class="brand">
         <h1 class="brand__name">Safe&nbsp;Space</h1>
-        <p class="brand__tagline">Mapa comunitario de espacios inclusivos · CDMX</p>
+        <p class="brand__tagline">Recursos inclusivos con procedencia visible · CDMX</p>
       </div>
       <div class="brand__badge">
         <span aria-hidden="true">🌈</span>
@@ -45,19 +45,19 @@
         ---------------------------------------------------------------- -->
         <section class="panel" aria-labelledby="search-title">
           <h2 class="panel__title" id="search-title">
-            <span aria-hidden="true">✨</span> Buscar con lenguaje natural
+            <span aria-hidden="true">✨</span> Buscar un recurso
           </h2>
 
           <form id="search-form" class="search">
             <label class="visually-hidden" for="search-input">
-              Describe el lugar que buscas
+              Describe el apoyo o recurso que buscas
             </label>
             <textarea
               id="search-input"
               class="search__input"
               rows="3"
               maxlength="300"
-              placeholder="Busco un café tranquilo para una cita con mi novia y me importa que tenga baño neutral"
+              placeholder="Necesito apoyo psicológico y quiero saber a dónde llamar"
             ></textarea>
             <button type="submit" class="button button--primary" id="search-button">
               Interpretar y buscar
@@ -68,26 +68,35 @@
         </section>
 
         <!-- ---------------------------------------------------------------
-             Filtros tradicionales. Las señales se generan desde
-             CONFIG.allowedSignals, que sale de template.yaml.
+             Filtros tradicionales. Los dos ejes —qué ofrece el recurso y cómo
+             se accede a él— se generan desde CONFIG.allowedServices y
+             CONFIG.allowedSignals, que salen de template.yaml.
         ---------------------------------------------------------------- -->
-        <section class="panel" aria-labelledby="filters-title">
+        <section class="panel" aria-labelledby="service-filters-title">
           <div class="panel__header">
-            <h2 class="panel__title" id="filters-title">
-              <span aria-hidden="true">🫶</span> Señales de inclusión
+            <h2 class="panel__title" id="service-filters-title">
+              <span aria-hidden="true">🧭</span> Servicios
             </h2>
             <button type="button" class="button button--ghost" id="clear-filters">Limpiar</button>
           </div>
+          <div class="chips" id="service-filters"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="signal-filters-title">
+          <h2 class="panel__title" id="signal-filters-title">
+            <span aria-hidden="true">🫶</span> Señales de acceso
+          </h2>
           <div class="chips" id="signal-filters"></div>
         </section>
 
         <!-- ---------------------------------------------------------------
-             Resultados
+             Resultados. Es la lista completa del directorio: aquí aparecen
+             también los recursos que no tienen pin en el mapa.
         ---------------------------------------------------------------- -->
         <section class="panel panel--grow" aria-labelledby="results-title">
           <div class="panel__header">
             <h2 class="panel__title" id="results-title">
-              <span aria-hidden="true">📍</span> Espacios
+              <span aria-hidden="true">📍</span> Recursos
             </h2>
             <span class="counter" id="results-counter"></span>
           </div>
@@ -95,75 +104,116 @@
         </section>
 
         <button type="button" class="button button--primary button--block" id="open-form">
-          + Recomendar un espacio
+          + Proponer un recurso
         </button>
 
         <p class="disclaimer">
-          Safe Space <strong>no certifica</strong> que un lugar sea universalmente seguro. Recoge
-          señales reportadas por la comunidad, con su procedencia y su fecha.
+          Safe Space <strong>no certifica</strong> que un recurso sea universalmente seguro ni que
+          esté disponible en todo momento. Muestra información con fuente, fecha y estado visibles.
+          Las derivaciones a refugios no publican ubicaciones protegidas.
         </p>
       </aside>
 
       <div class="map-panel">
-        <div id="map" role="application" aria-label="Mapa de espacios inclusivos"></div>
+        <div id="map" role="application" aria-label="Mapa de recursos con ubicación pública"></div>
         <p class="map-error" id="map-error" hidden></p>
       </div>
     </main>
 
     <!-- -----------------------------------------------------------------
-         Formulario de alta. Envía POST /places.
+         Formulario de propuesta. Envía POST /resources y lo que guarda queda
+         como `pending`: no aparece en el directorio hasta que alguien
+         comprueba la fuente.
     ------------------------------------------------------------------ -->
-    <dialog id="place-dialog" class="dialog" aria-labelledby="dialog-title">
-      <form id="place-form" method="dialog" class="dialog__form">
+    <dialog id="resource-dialog" class="dialog" aria-labelledby="dialog-title">
+      <form id="resource-form" method="dialog" class="dialog__form">
         <h2 class="panel__title" id="dialog-title">
-          <span aria-hidden="true">🌈</span> Recomendar un espacio
+          <span aria-hidden="true">🌈</span> Proponer un recurso
         </h2>
 
+        <p class="field__hint">
+          La propuesta quedará pendiente de revisión. No aparecerá en el directorio hasta que alguien
+          compruebe su fuente.
+        </p>
+
         <label class="field">
-          <span class="field__label">Nombre del lugar</span>
+          <span class="field__label">Nombre del recurso</span>
           <input class="field__input" name="name" type="text" maxlength="120" required />
         </label>
 
         <label class="field">
-          <span class="field__label">Categoría</span>
+          <span class="field__label">Tipo de recurso</span>
           <select class="field__input" name="category" id="category-select" required></select>
         </label>
 
         <label class="field">
-          <span class="field__label">Dirección</span>
-          <input class="field__input" name="address" type="text" maxlength="200" />
+          <span class="field__label">Descripción</span>
+          <textarea class="field__input" name="description" rows="3" maxlength="500"></textarea>
         </label>
 
-        <div class="field-row">
-          <label class="field">
-            <span class="field__label">Latitud</span>
-            <input class="field__input" name="latitude" type="number" step="any" required />
-          </label>
-          <label class="field">
-            <span class="field__label">Longitud</span>
-            <input class="field__input" name="longitude" type="number" step="any" required />
-          </label>
-        </div>
-
-        <p class="field__hint">
-          ¿No sabes las coordenadas? Haz clic en el mapa y se rellenan solas.
-        </p>
+        <fieldset class="field">
+          <legend class="field__label">Servicios</legend>
+          <div class="chips" id="form-services"></div>
+        </fieldset>
 
         <fieldset class="field">
-          <legend class="field__label">Señales reportadas</legend>
+          <legend class="field__label">Señales de acceso</legend>
           <div class="chips" id="form-signals"></div>
         </fieldset>
 
         <label class="field">
-          <span class="field__label">Nota de la comunidad</span>
-          <textarea class="field__input" name="communityNote" rows="3" maxlength="280"></textarea>
+          <span class="field__label">Dirección pública, si corresponde</span>
+          <input class="field__input" name="address" type="text" maxlength="200" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Zona o cobertura</span>
+          <input class="field__input" name="serviceArea" type="text" maxlength="200" />
+        </label>
+
+        <div class="field-row" id="location-fields">
+          <label class="field">
+            <span class="field__label">Latitud pública</span>
+            <input class="field__input" name="latitude" type="number" step="any" />
+          </label>
+          <label class="field">
+            <span class="field__label">Longitud pública</span>
+            <input class="field__input" name="longitude" type="number" step="any" />
+          </label>
+        </div>
+
+        <p class="field__hint" id="location-hint">
+          Si existe una ubicación pública, haz clic en el mapa para rellenar las coordenadas. Nunca
+          publiques la dirección de un refugio.
+        </p>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field__label">Teléfono</span>
+            <input class="field__input" name="phone" type="tel" maxlength="80" />
+          </label>
+          <label class="field">
+            <span class="field__label">Correo</span>
+            <input class="field__input" name="email" type="email" maxlength="160" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Sitio web o fuente</span>
+          <input class="field__input" name="website" type="url" maxlength="500" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Fuente para revisar</span>
+          <input class="field__input" name="sourceUrl" type="url" maxlength="500" />
         </label>
 
         <p class="dialog__error" id="form-error" role="alert"></p>
+        <p class="dialog__success" id="form-success" role="status"></p>
 
         <div class="dialog__actions">
           <button type="button" class="button button--ghost" id="cancel-form">Cancelar</button>
-          <button type="submit" class="button button--primary" id="submit-form">Registrar</button>
+          <button type="submit" class="button button--primary" id="submit-form">Enviar propuesta</button>
         </div>
       </form>
     </dialog>
