@@ -1,0 +1,75 @@
+{
+  "name": "Safe Space · AWSpectrum Impact Lab",
+
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // El taller está pensado para la máquina de 2 núcleos, que es la que entra de sobra en
+  // la cuota gratuita de Codespaces.
+  "hostRequirements": {
+    "cpus": 2
+  },
+
+  // Región del taller y paginador desactivado. No son secretos: las credenciales llegan en
+  // tiempo de ejecución con `aws login --remote` y no se guardan en la imagen.
+  "containerEnv": {
+    "AWS_REGION": "us-east-1",
+    "AWS_DEFAULT_REGION": "us-east-1",
+    "AWS_PAGER": ""
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "redhat.vscode-yaml",
+        "github.vscode-pull-request-github"
+      ],
+      "settings": {
+        "files.eol": "\n",
+        "editor.rulers": [100],
+        "[yaml]": {
+          "editor.tabSize": 2
+        },
+        // Sin esto, `template.yaml` aparece subrayado en rojo de arriba abajo: el parser de
+        // YAML no conoce las etiquetas de CloudFormation y marca cada !Ref y cada !Sub como
+        // error. Son errores falsos, pero alguien que empieza no tiene forma de saberlo y
+        // asume que el repositorio está roto.
+        "yaml.customTags": [
+          "!And",
+          "!And sequence",
+          "!Base64",
+          "!Cidr",
+          "!Condition",
+          "!Equals",
+          "!Equals sequence",
+          "!FindInMap",
+          "!FindInMap sequence",
+          "!GetAtt",
+          "!GetAZs",
+          "!If",
+          "!If sequence",
+          "!ImportValue",
+          "!Join",
+          "!Join sequence",
+          "!Not",
+          "!Not sequence",
+          "!Or",
+          "!Or sequence",
+          "!Ref",
+          "!Select",
+          "!Select sequence",
+          "!Split",
+          "!Split sequence",
+          "!Sub",
+          "!Sub sequence"
+        ]
+      }
+    }
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "remoteUser": "vscode"
+}
