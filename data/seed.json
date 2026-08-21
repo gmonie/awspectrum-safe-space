@@ -1,355 +1,309 @@
 [
   {
-    "id": "kinky-bar",
-    "name": "Kinky Bar",
-    "category": "bar",
-    "address": "Calle Amberes 1, Juárez, 06600 Cuauhtémoc, CDMX, México",
-    "latitude": 19.42712,
-    "longitude": -99.16628,
-    "signals": [
-      "lgbtq_space",
-      "couples_friendly"
+    "id": "unadis-cdmx",
+    "name": "UNADIS · Unidad de Atención a la Diversidad Sexual",
+    "category": "organization",
+    "description": "Acompañamiento psicoemocional, asesoría jurídica y formación de redes de apoyo para personas de la diversidad sexual y de género.",
+    "services": [
+      "psychological_support",
+      "legal_support",
+      "referral",
+      "community_network"
     ],
-    "communityNote": "Bar histórico de la Zona Rosa. La comunidad lo reporta como espacio abiertamente LGBTQ+.",
+    "signals": [
+      "lgbtq_affirming"
+    ],
+    "address": "Avenida 20 de Noviembre 195, Centro, Cuauhtémoc, 06010 CDMX",
+    "latitude": 19.4291371,
+    "longitude": -99.1338374,
+    "contact": {
+      "phone": "55 5658 1111 · 55 8957 3400 ext. 139 · 55 4611 8811",
+      "email": "unadis.atencion@gmail.com",
+      "website": "https://sebien.cdmx.gob.mx/unadis-diversidad-sexual-y-de-genero"
+    },
     "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
+      "type": "direct_source",
+      "sourceUrl": "https://sebien.cdmx.gob.mx/unadis-diversidad-sexual-y-de-genero",
+      "checkedAt": "2026-08-19"
+    },
+    "publicationStatus": "approved"
   },
   {
-    "id": "marrakech-salon",
-    "name": "Marrakech Salón",
-    "category": "bar",
-    "address": "Marrakech Salon, República de Cuba 18, Centro, 06010 Cuauhtémoc, CDMX, México",
-    "latitude": 19.43758,
-    "longitude": -99.13868,
-    "signals": [
-      "lgbtq_space",
-      "couples_friendly"
+    "id": "usipt-cdmx",
+    "name": "USIPT · Unidad de Salud Integral para Personas Trans",
+    "category": "support_service",
+    "description": "Atención integral para personas trans y no binarias, con salud mental, psicoterapia, psiquiatría, grupos de apoyo y asesoría legal y de derechos humanos.",
+    "services": [
+      "psychological_support",
+      "legal_support",
+      "healthcare",
+      "community_network"
     ],
-    "communityNote": "Cantina del Centro Histórico con público mayoritariamente LGBTQ+ reportado por la comunidad.",
-    "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
-  },
-  {
-    "id": "la-purisima",
-    "name": "La Purísima",
-    "category": "bar",
-    "address": "República de Cuba 17, Centro, 06010 Cuauhtémoc, CDMX, México",
-    "latitude": 19.43742,
-    "longitude": -99.13887,
     "signals": [
-      "lgbtq_space",
-      "couples_friendly",
-      "quiet"
+      "trans_inclusive",
+      "lgbtq_affirming"
     ],
-    "communityNote": "Espacio de la calle República de Cuba reportado como cómodo para parejas.",
+    "address": "Avenida Insurgentes Norte 423, Nonoalco Tlatelolco, Cuauhtémoc, 06900 CDMX",
+    "latitude": 19.4545577,
+    "longitude": -99.1509918,
+    "contact": {
+      "phone": "55 5132 1250 ext. 1354 · 55 5132 1250 ext. 1341",
+      "website": "https://www.salud.cdmx.gob.mx/ver-mas/unidad-de-salud-integral-para-personas-trans-usipt"
+    },
     "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
-  },
-  {
-    "id": "toms-leather-bar",
-    "name": "Tom's Leather Bar",
-    "category": "bar",
-    "address": "Tom's Leather Bar, Avenida Insurgentes Sur 357, Hipódromo, 06100 Cuauhtémoc, CDMX, México",
-    "latitude": 19.41116,
-    "longitude": -99.16696,
-    "signals": [
-      "lgbtq_space"
-    ],
-    "communityNote": "Espacio explícitamente LGBTQ+ sobre Avenida Insurgentes Sur.",
-    "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
-  },
-  {
-    "id": "cafe-toscano",
-    "name": "Café Toscano",
-    "category": "cafe",
-    "address": "Café Toscano, Orizaba 42l, Roma Norte, 06700 Cuauhtémoc, CDMX, México",
-    "latitude": 19.41278,
-    "longitude": -99.15818,
-    "signals": [
-      "quiet",
-      "couples_friendly",
-      "neutral_bathroom"
-    ],
-    "communityNote": "Cafetería tranquila en Roma Norte. Se ha reportado baño de uso neutral.",
-    "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
-  },
-  {
-    "id": "blend-station",
-    "name": "Blend Station",
-    "category": "cafe",
-    "address": "Blend Station, Avenida Tamaulipas 60, Hipódromo, 06100 Cuauhtémoc, CDMX, México",
-    "latitude": 19.412,
-    "longitude": -99.17327,
-    "signals": [
-      "quiet",
-      "accessible",
-      "couples_friendly"
-    ],
-    "communityNote": "Cafetería amplia en Condesa con acceso a nivel de calle reportado.",
-    "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
-  },
-  {
-    "id": "cardinal-casa-de-cafe",
-    "name": "Cardinal Casa de Café",
-    "category": "cafe",
-    "address": "Cardinal, Córdoba 132, Roma Norte, 06700 Cuauhtémoc, CDMX, México",
-    "latitude": 19.41723,
-    "longitude": -99.15819,
-    "signals": [
-      "quiet",
-      "neutral_bathroom"
-    ],
-    "communityNote": "Cafetería de especialidad en Roma Norte. Se ha reportado baño de uso neutral.",
-    "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
-  },
-  {
-    "id": "libreria-rosario-castellanos",
-    "name": "Librería Rosario Castellanos",
-    "category": "bookstore",
-    "address": "Avenida Tamaulipas 202, Hipódromo, 06100 Cuauhtémoc, CDMX, México",
-    "latitude": 19.4073,
-    "longitude": -99.17739,
-    "signals": [
-      "quiet",
-      "accessible",
-      "neutral_bathroom"
-    ],
-    "communityNote": "Librería del Fondo de Cultura Económica en Condesa. Recinto público con accesibilidad reportada.",
-    "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
-  },
-  {
-    "id": "casa-bosques",
-    "name": "Casa Bosques",
-    "category": "bookstore",
-    "address": "Casa Bosques, Córdoba 25, Roma Norte, 06700 Cuauhtémoc, CDMX, México",
-    "latitude": 19.42318,
-    "longitude": -99.15977,
-    "signals": [
-      "quiet"
-    ],
-    "communityNote": "Librería independiente pequeña y tranquila en Roma Norte.",
-    "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
-  },
-  {
-    "id": "el-pendulo-condesa",
-    "name": "Cafebrería El Péndulo Condesa",
-    "category": "bookstore",
-    "address": "Cafebrería El Péndulo Condesa, Avenida Nuevo León 115, Hipódromo, 06100 Cuauhtémoc, CDMX, México",
-    "latitude": 19.41059,
-    "longitude": -99.17296,
-    "signals": [
-      "quiet",
-      "couples_friendly",
-      "accessible"
-    ],
-    "communityNote": "Librería y cafetería. La comunidad la reporta como espacio cómodo para estar sin prisa.",
-    "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
+      "type": "direct_source",
+      "sourceUrl": "https://www.salud.cdmx.gob.mx/ver-mas/unidad-de-salud-integral-para-personas-trans-usipt",
+      "checkedAt": "2026-08-19"
+    },
+    "publicationStatus": "approved"
   },
   {
     "id": "clinica-especializada-condesa",
     "name": "Clínica Especializada Condesa",
-    "category": "clinic",
-    "address": "Clínica Especializada Condesa, Avenida General Benjamín Hill, Hipódromo Condesa, 06170 Cuauhtémoc, CDMX, México",
+    "category": "support_service",
+    "description": "Atención multidisciplinaria para ITS y VIH, personas trans, sobrevivientes de violencia sexual y otras poblaciones que requieren atención especializada.",
+    "services": [
+      "psychological_support",
+      "healthcare",
+      "referral"
+    ],
+    "signals": [
+      "lgbtq_affirming",
+      "trans_inclusive"
+    ],
+    "address": "Benjamín Hill 24, Colonia Condesa, Cuauhtémoc, 06140 CDMX",
     "latitude": 19.40898,
     "longitude": -99.18225,
-    "signals": [
-      "inclusive_healthcare",
-      "pronouns_respected",
-      "accessible",
-      "lgbtq_space"
-    ],
-    "communityNote": "Servicio público de salud de la Ciudad de México con atención específica a población LGBTQ+ y personas trans.",
+    "contact": {
+      "phone": "55 5515 8311",
+      "website": "https://condesa.cdmx.gob.mx/nosotros"
+    },
     "provenance": {
-      "type": "official_source",
-      "source": "Información pública de la institución responsable",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
+      "type": "direct_source",
+      "sourceUrl": "https://condesa.cdmx.gob.mx/nosotros",
+      "checkedAt": "2026-08-19"
+    },
+    "publicationStatus": "approved"
   },
   {
     "id": "clinica-especializada-condesa-iztapalapa",
     "name": "Clínica Especializada Condesa Iztapalapa",
-    "category": "clinic",
-    "address": "Clínica Especializada Condesa-Iztapalapa, Combate de Celaya, Unidad Hab Vicente Guerrero, 09200 Iztapalapa, CDMX, México",
+    "category": "support_service",
+    "description": "Sede de atención especializada con enfoque multidisciplinario para salud sexual, VIH, ITS y poblaciones vulnerables.",
+    "services": [
+      "psychological_support",
+      "healthcare",
+      "referral"
+    ],
+    "signals": [
+      "lgbtq_affirming",
+      "trans_inclusive"
+    ],
+    "address": "Avenida Combate de Celaya s/n, Unidad Habitacional Vicente Guerrero, Iztapalapa, 09730 CDMX",
     "latitude": 19.35677,
     "longitude": -99.05176,
-    "signals": [
-      "inclusive_healthcare",
-      "pronouns_respected",
-      "accessible",
-      "lgbtq_space"
-    ],
-    "communityNote": "Sede en Iztapalapa del mismo servicio público de salud especializada.",
+    "contact": {
+      "phone": "55 5038 1700 ext. 7902 · 7904",
+      "website": "https://condesa.cdmx.gob.mx/nosotros"
+    },
     "provenance": {
-      "type": "official_source",
-      "source": "Información pública de la institución responsable",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
+      "type": "direct_source",
+      "sourceUrl": "https://condesa.cdmx.gob.mx/nosotros",
+      "checkedAt": "2026-08-19"
+    },
+    "publicationStatus": "approved"
   },
   {
-    "id": "museo-memoria-y-tolerancia",
-    "name": "Museo Memoria y Tolerancia",
-    "category": "museum",
-    "address": "Museo Memoria y Tolerancia, Avenida Juárez 8, Centro, 06050 Cuauhtémoc, CDMX, México",
-    "latitude": 19.43452,
-    "longitude": -99.1445,
-    "signals": [
-      "accessible",
-      "neutral_bathroom",
-      "quiet"
+    "id": "copred-cdmx",
+    "name": "COPRED · Consejo para Prevenir y Eliminar la Discriminación",
+    "category": "organization",
+    "description": "Recibe y orienta casos relacionados con discriminación, incluidos los que afectan a personas de la diversidad sexual y de género.",
+    "services": [
+      "legal_support",
+      "referral"
     ],
-    "communityNote": "Museo con programa permanente sobre derechos humanos y diversidad. Recinto accesible.",
+    "signals": [
+      "lgbtq_affirming"
+    ],
+    "address": "Calle General Prim 10, Centro, Cuauhtémoc, 06010 CDMX",
+    "latitude": 19.429243,
+    "longitude": -99.1516147,
+    "contact": {
+      "phone": "55 4600 8233 · 55 5341 3010",
+      "email": "quejas.copred@cdmx.gob.mx",
+      "website": "https://www.copred.cdmx.gob.mx/"
+    },
     "provenance": {
-      "type": "official_source",
-      "source": "Información pública de la institución responsable",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
+      "type": "direct_source",
+      "sourceUrl": "https://www.copred.cdmx.gob.mx/",
+      "checkedAt": "2026-08-19"
+    },
+    "publicationStatus": "approved"
   },
   {
-    "id": "museo-universitario-del-chopo",
-    "name": "Museo Universitario del Chopo",
-    "category": "museum",
-    "address": "Museo Universitario del Chopo, Calle Doctor Enrique González Martínez 10, Santa María La Ribera, 06400 Cuauhtémoc, CDMX, México",
-    "latitude": 19.44196,
-    "longitude": -99.15677,
-    "signals": [
-      "lgbtq_space",
-      "accessible",
-      "quiet"
+    "id": "cariva-cdmx",
+    "name": "CARIVA · Centro de Atención a Riesgos Victimales y Adicciones",
+    "category": "support_service",
+    "description": "Asistencia social inmediata, atención psicológica, asesoría legal, seguimiento jurídico y atención médica de emergencia para personas en situación de violencia o discriminación.",
+    "services": [
+      "psychological_support",
+      "legal_support",
+      "healthcare",
+      "referral"
     ],
-    "communityNote": "Museo de la UNAM con programación histórica ligada a la disidencia sexual y de género.",
+    "signals": [
+      "lgbtq_affirming",
+      "free"
+    ],
+    "address": "Avenida Dr. Río de la Loza 156, quinto piso, Doctores, Cuauhtémoc, 06720 CDMX",
+    "latitude": 19.4253827,
+    "longitude": -99.1484707,
+    "contact": {
+      "phone": "55 5200 9166 · 55 5200 9172",
+      "email": "centrocariva@gmail.com",
+      "website": "https://www.fgjcdmx.gob.mx/CARIVA"
+    },
     "provenance": {
-      "type": "official_source",
-      "source": "Información pública de la institución responsable",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
+      "type": "direct_source",
+      "sourceUrl": "https://www.fgjcdmx.gob.mx/CARIVA",
+      "checkedAt": "2026-08-19"
+    },
+    "publicationStatus": "approved"
   },
   {
-    "id": "parque-mexico",
-    "name": "Parque México",
-    "category": "park",
-    "address": "Avenida México, Hipódromo, 06100 Cuauhtémoc, CDMX, México",
-    "latitude": 19.41282,
-    "longitude": -99.16997,
-    "signals": [
-      "couples_friendly",
-      "accessible",
-      "quiet"
+    "id": "locatel-diversidad-sexual",
+    "name": "Línea Diversidad Sexual · LOCATEL",
+    "category": "support_service",
+    "description": "Orientación jurídica, psicológica y médica, además de canalización a instituciones presenciales de la Ciudad de México.",
+    "services": [
+      "psychological_support",
+      "legal_support",
+      "healthcare",
+      "referral"
     ],
-    "communityNote": "Parque público de la Condesa, reportado como cómodo para caminar en pareja.",
+    "signals": [
+      "lgbtq_affirming",
+      "trans_inclusive",
+      "open_24_7",
+      "contact_only"
+    ],
+    "serviceArea": "Ciudad de México · atención telefónica y chat 24/7",
+    "contact": {
+      "phone": "*0311 · 55 5658 1111",
+      "website": "https://311locatel.cdmx.gob.mx/diversidad.xhtml"
+    },
     "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
+      "type": "direct_source",
+      "sourceUrl": "https://311locatel.cdmx.gob.mx/diversidad.xhtml",
+      "checkedAt": "2026-08-19"
+    },
+    "publicationStatus": "approved"
   },
   {
-    "id": "alameda-central",
-    "name": "Alameda Central",
-    "category": "park",
-    "address": "Alameda Central, Avenida Juárez, Centro, 06050 Cuauhtémoc, CDMX, México",
-    "latitude": 19.43464,
-    "longitude": -99.14407,
-    "signals": [
-      "accessible",
-      "couples_friendly"
+    "id": "lunas-cdmx",
+    "name": "LUNAS · Unidades territoriales de atención",
+    "category": "support_service",
+    "description": "Red de unidades que ofrece acompañamiento psicológico y jurídico, información y canalización para mujeres que viven violencia.",
+    "services": [
+      "psychological_support",
+      "legal_support",
+      "referral"
     ],
-    "communityNote": "Parque público del Centro Histórico, sede habitual de actividades comunitarias.",
+    "signals": [
+      "free",
+      "contact_only"
+    ],
+    "serviceArea": "27 unidades en las 16 alcaldías de Ciudad de México",
+    "contact": {
+      "phone": "55 5512 2836 ext. 502",
+      "website": "https://www.semujeres.cdmx.gob.mx/lunas"
+    },
     "provenance": {
-      "type": "official_source",
-      "source": "Información pública de la institución responsable",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
+      "type": "direct_source",
+      "sourceUrl": "https://www.semujeres.cdmx.gob.mx/servicios-semujeres",
+      "checkedAt": "2026-08-19"
+    },
+    "publicationStatus": "approved"
   },
   {
-    "id": "centro-cultural-border",
-    "name": "Centro Cultural Border",
+    "id": "refugio-semujeres-cdmx",
+    "name": "Refugio para mujeres · Secretaría de las Mujeres",
+    "category": "shelter_referral",
+    "description": "Derivación a espacios temporales de seguridad con atención psicológica, médica, jurídica y social. El ingreso requiere valoración y canalización.",
+    "services": [
+      "shelter_support",
+      "psychological_support",
+      "legal_support",
+      "healthcare",
+      "referral"
+    ],
+    "signals": [
+      "open_24_7",
+      "contact_only"
+    ],
+    "serviceArea": "Ciudad de México · acceso mediante LUNAS o Abogadas de las Mujeres",
+    "contact": {
+      "phone": "55 5512 2836",
+      "website": "https://www.semujeres.cdmx.gob.mx/espacios-de-refugio"
+    },
+    "provenance": {
+      "type": "direct_source",
+      "sourceUrl": "https://www.semujeres.cdmx.gob.mx/espacios-de-refugio",
+      "checkedAt": "2026-08-19"
+    },
+    "publicationStatus": "approved"
+  },
+  {
+    "id": "casa-frida-refugio-lgbt",
+    "name": "Casa Frida · refugio LGBTIQ+",
+    "category": "shelter_referral",
+    "description": "Organización de atención y refugio para personas LGBTIQ+. Esta ficha conserva únicamente canales de contacto; no publica la ubicación del refugio.",
+    "services": [
+      "shelter_support",
+      "psychological_support",
+      "legal_support",
+      "referral"
+    ],
+    "signals": [
+      "lgbtq_affirming",
+      "contact_only"
+    ],
+    "serviceArea": "Ciudad de México · solicitar canal de atención directamente",
+    "contact": {
+      "email": "casafrida@refugiolgbt.org",
+      "website": "https://refugiolgbt.org/"
+    },
+    "provenance": {
+      "type": "direct_source",
+      "sourceUrl": "https://refugiolgbt.org/",
+      "checkedAt": "2026-08-19"
+    },
+    "publicationStatus": "approved"
+  },
+  {
+    "id": "centro-cultural-diversidad",
+    "name": "Centro Cultural de la Diversidad",
     "category": "community_center",
-    "address": "Centro Cultural Border, Calle Zacatecas 43, Roma Norte, 06700 Cuauhtémoc, CDMX, México",
-    "latitude": 19.41672,
-    "longitude": -99.15626,
-    "signals": [
-      "lgbtq_space",
-      "quiet",
-      "couples_friendly"
+    "description": "Centro cultural con teatro, galería y biblioteca. Programa talleres, conferencias y actividades comunitarias dirigidas a la diversidad sexual y de género.",
+    "services": [
+      "community_network"
     ],
-    "communityNote": "Espacio cultural independiente en Roma Norte con programación comunitaria.",
-    "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
-  },
-  {
-    "id": "parque-hundido",
-    "name": "Parque Hundido",
-    "category": "park",
-    "address": "Parque Hundido, Avenida Insurgentes Sur 01110, Extremadura Insurgentes, 03740 Benito Juárez, CDMX, México",
-    "latitude": 19.37835,
-    "longitude": -99.17804,
     "signals": [
-      "quiet",
-      "accessible"
+      "lgbtq_affirming"
     ],
-    "communityNote": "Parque público en Benito Juárez, reportado como tranquilo entre semana.",
+    "address": "Colima 261, Roma Norte, Cuauhtémoc, 06700 CDMX",
+    "latitude": 19.418835,
+    "longitude": -99.164215,
+    "contact": {
+      "phone": "55 5514 2565",
+      "email": "informes.ccd@gmail.com",
+      "website": "https://sic.cultura.gob.mx/ficha.php?table=centro_cultural&table_id=1542"
+    },
     "provenance": {
-      "type": "community_draft",
-      "source": "Borrador del equipo del workshop — pendiente de verificación",
-      "verifiedAt": "2026-08",
-      "geocodedWith": "Amazon Location Places V2"
-    }
+      "type": "direct_source",
+      "sourceUrl": "https://sic.cultura.gob.mx/ficha.php?table=centro_cultural&table_id=1542",
+      "checkedAt": "2026-08-20"
+    },
+    "publicationStatus": "approved"
   }
 ]

@@ -22,6 +22,13 @@ confirm_changeset = false
 fail_on_empty_changeset = false
 tags = "project=safe-space workshop=awspectrum-latam"
 
+# Aquí NO va `parameter_overrides` con la taxonomía. La plantilla declara que
+# sus `Default` son la única fuente de verdad, y repetirlos en este archivo
+# crea una segunda copia que gana en silencio: quien edite template.yaml
+# siguiendo esa instrucción vería que su cambio no surte efecto.
+# Para probar otra taxonomía sin tocar la plantilla, pásala en la línea:
+#     sam deploy --parameter-overrides AllowedServices=...
+
 [default.sync.parameters]
 # 'sam sync --code' sube sólo el código de las Lambdas, sin rehacer la
 # infraestructura. Es lo que usarás durante la fase de experimentación.

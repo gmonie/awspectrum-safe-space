@@ -2,7 +2,8 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
 Description: >-
-  Safe Space — mapa comunitario de espacios inclusivos para la comunidad LGBTQ+.
+  Safe Space — directorio comunitario de recursos inclusivos para la comunidad LGBTQ+,
+  con mapa opcional cuando existe una ubicación pública.
   Workshop de AWS Spectrum LATAM. Toda la infraestructura es serverless y de pago
   por uso: no hay ningún recurso con costo fijo por hora.
 
@@ -16,16 +17,21 @@ Parameters:
   AllowedSignals:
     Type: String
     Description: >-
-      Taxonomía de señales de inclusión que acepta la aplicación, separada por
+      Señales de inclusión y acceso que acepta la aplicación, separadas por
       comas. Es la única fuente de verdad: la usan las dos Lambdas para validar
       y el frontend para dibujar los filtros. Para añadir una señal, edita esta
       línea y vuelve a ejecutar 'sam deploy'.
-    Default: lgbtq_space,neutral_bathroom,accessible,pronouns_respected,couples_friendly,quiet,inclusive_healthcare
+    Default: lgbtq_affirming,trans_inclusive,free,open_24_7,contact_only
 
   AllowedCategories:
     Type: String
-    Description: Categorías de lugar que acepta la aplicación, separadas por comas.
-    Default: cafe,restaurant,bar,bookstore,clinic,community_center,museum,park,coworking,shop
+    Description: Tipos de recurso que acepta la aplicación, separados por comas.
+    Default: organization,support_service,community_center,shelter_referral
+
+  AllowedServices:
+    Type: String
+    Description: Servicios que puede ofrecer un recurso, separados por comas.
+    Default: psychological_support,legal_support,healthcare,referral,community_network,shelter_support
 
   BedrockModelId:
     Type: String
@@ -49,6 +55,7 @@ Globals:
       Variables:
         ALLOWED_SIGNALS: !Ref AllowedSignals
         ALLOWED_CATEGORIES: !Ref AllowedCategories
+        ALLOWED_SERVICES: !Ref AllowedServices
 
 Resources:
   # -------------------------------------------------------------------------
@@ -89,7 +96,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-places"
-      Description: Lee y registra espacios de la comunidad en DynamoDB.
+      Description: Lee recursos aprobados y recibe propuestas pendientes en DynamoDB.
       CodeUri: functions/places/
       Handler: app.lambda_handler
       Environment:
@@ -106,18 +113,18 @@ Resources:
         ApplicationLogLevel: INFO
         SystemLogLevel: WARN
       Events:
-        ListPlaces:
+        ListResources:
           Type: HttpApi
           Properties:
             ApiId: !Ref SafeSpaceApi
             Method: GET
-            Path: /places
-        CreatePlace:
+            Path: /resources
+        CreateResource:
           Type: HttpApi
           Properties:
             ApiId: !Ref SafeSpaceApi
             Method: POST
-            Path: /places
+            Path: /resources
 
   SearchFunction:
     Type: AWS::Serverless::Function
@@ -268,3 +275,7 @@ Outputs:
   AllowedCategories:
     Description: Categorías de lugar vigentes.
     Value: !Ref AllowedCategories
+
+  AllowedServices:
+    Description: Servicios vigentes que puede ofrecer un recurso.
+    Value: !Ref AllowedServices

@@ -1,4 +1,4 @@
-"""Búsqueda en lenguaje natural.
+"""Búsqueda de recursos en lenguaje natural.
 
 Atiende una sola ruta del HTTP API:
 
@@ -6,15 +6,19 @@ Atiende una sola ruta del HTTP API:
 
 Qué hace exactamente la IA
 --------------------------
-Amazon Bedrock traduce "busco un café tranquilo con baño neutral" a:
+Amazon Bedrock traduce "necesito apoyo psicológico y no puedo pagarlo" a:
 
-    {"category": "cafe", "signals": ["quiet", "neutral_bathroom"]}
+    {"category": null, "services": ["psychological_support"], "signals": ["free"]}
 
-Y ahí termina su trabajo. **El modelo no elige lugares y no consulta la base de
+Y ahí termina su trabajo. **El modelo no elige recursos y no consulta la base de
 datos.** Esta función valida su respuesta contra la taxonomía que declara
-template.yaml, y el navegador hace el emparejamiento sobre los espacios que ya
-descargó con `GET /places`. Así garantizamos que Safe Space solo puede devolver
-lugares que existen de verdad en la tabla.
+template.yaml, y el navegador hace el emparejamiento sobre los recursos que ya
+descargó con `GET /resources`. Así garantizamos que Safe Space solo puede
+devolver recursos que existen de verdad en la tabla, con su fuente y su fecha.
+
+En un directorio de apoyo esto no es una sutileza técnica. Un modelo que
+inventara un teléfono de refugio con la misma seguridad con la que escribe
+cualquier otra frase mandaría a alguien a un número que no existe.
 
 Si Bedrock no está disponible, la función degrada a una extracción por palabras
 clave y lo indica en el campo `source`. El workshop nunca se queda bloqueado.
@@ -36,9 +40,10 @@ logger.setLevel(logging.INFO)
 
 MODEL_ID = os.environ["BEDROCK_MODEL_ID"]
 
-# La taxonomía llega desde template.yaml, igual que en la función de lugares.
-ALLOWED_SIGNALS = tuple(os.environ["ALLOWED_SIGNALS"].split(","))
-ALLOWED_CATEGORIES = tuple(os.environ["ALLOWED_CATEGORIES"].split(","))
+# La taxonomía llega desde template.yaml, igual que en la función de recursos.
+ALLOWED_SIGNALS = tuple(filter(None, os.environ["ALLOWED_SIGNALS"].split(",")))
+ALLOWED_CATEGORIES = tuple(filter(None, os.environ["ALLOWED_CATEGORIES"].split(",")))
+ALLOWED_SERVICES = tuple(filter(None, os.environ["ALLOWED_SERVICES"].split(",")))
 
 MAX_QUERY_LENGTH = 300
 
@@ -53,43 +58,46 @@ BEDROCK = boto3.client(
     ),
 )
 
-SYSTEM_PROMPT = f"""Eres un extractor de criterios para Safe Space, un mapa de espacios inclusivos.
+SYSTEM_PROMPT = f"""Eres un extractor de criterios para Safe Space, un directorio de recursos inclusivos en Ciudad de México.
 
-Recibes una frase de una persona que busca un lugar y devuelves ÚNICAMENTE un
-objeto JSON con esta forma exacta:
+Recibes una frase de una persona y devuelves ÚNICAMENTE un objeto JSON con esta forma exacta:
 
-{{"category": <una de {list(ALLOWED_CATEGORIES)} o null>, "signals": [<subconjunto de {list(ALLOWED_SIGNALS)}>]}}
+{{"category": <una de {list(ALLOWED_CATEGORIES)} o null, "services": [<subconjunto de {list(ALLOWED_SERVICES)}>], "signals": [<subconjunto de {list(ALLOWED_SIGNALS)}>]}}
 
 Reglas:
 - No escribas nada fuera del JSON: ni explicaciones, ni bloques de código.
-- No inventes categorías ni señales que no estén en las listas.
-- No inventes lugares, nombres ni direcciones. No es tu tarea.
+- No inventes categorías, servicios ni señales que no estén en las listas.
+- No inventes nombres, direcciones, teléfonos ni organizaciones. No es tu tarea.
 - Si no puedes deducir la categoría con confianza, usa null.
-- Si no detectas ninguna señal, usa una lista vacía."""
+- Si no detectas servicios o señales, usa listas vacías.
+- “Refugio” debe orientar a shelter_referral; nunca implica que debas revelar una ubicación.
+"""
 
 # Plan B determinista. Se usa cuando Bedrock falla y también sirve para explicar
-# en el workshop qué parte del sistema es IA y qué parte no lo es.
-SIGNAL_KEYWORDS: dict[str, tuple[str, ...]] = {
-    "neutral_bathroom": ("bano neutral", "bano neutro", "bano inclusivo", "bano sin genero", "bano mixto"),
-    "accessible": ("accesible", "accesibilidad", "silla de ruedas", "rampa", "movilidad"),
-    "pronouns_respected": ("pronombre", "nombre elegido", "nombre social", "trans", "no binari"),
-    "couples_friendly": ("pareja", "novia", "novio", "cita", "romantic", "besar"),
-    "quiet": ("tranquil", "silencios", "calmad", "relajad", "sin ruido"),
-    "lgbtq_space": ("lgbt", "queer", "gay", "lesbi", "arcoiris", "pride", "diversidad"),
-    "inclusive_healthcare": ("salud", "clinica", "medic", "hormonal", "atencion trans"),
+# en el workshop qué parte del sistema es IA y qué parte no lo es: esta tabla
+# entiende "psicólogo", pero no entiende "llevo semanas sin poder dormir".
+SERVICE_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "psychological_support": ("psicolog", "psicoemocional", "salud mental", "terapia", "psiquiatr"),
+    "legal_support": ("legal", "jurid", "abogada", "abogado", "discriminacion", "derechos"),
+    "healthcare": ("salud", "clinica", "medic", "vih", "its", "hormonal"),
+    "referral": ("canaliza", "orienta", "linea", "línea", "referencia", "derivacion"),
+    "community_network": ("red de apoyo", "comunidad", "colectivo", "acompanamiento", "acompañamiento"),
+    "shelter_support": ("refugio", "albergue", "casa segura", "resguardo", "alojamiento"),
 }
 
 CATEGORY_KEYWORDS: dict[str, tuple[str, ...]] = {
-    "cafe": ("cafe", "cafeteria", "capuchino"),
-    "restaurant": ("restaurante", "comer", "comida", "cenar", "brunch"),
-    "bar": ("bar", "copas", "antro", "cantina", "mezcal", "cerveza"),
-    "bookstore": ("libreria", "libros", "leer"),
-    "clinic": ("clinica", "consultorio", "medic"),
-    "community_center": ("centro comunitario", "colectivo", "asociacion"),
-    "museum": ("museo", "galeria", "exposicion"),
-    "park": ("parque", "jardin", "aire libre"),
-    "coworking": ("coworking", "trabajar", "oficina"),
-    "shop": ("tienda", "comprar", "boutique"),
+    "shelter_referral": ("refugio", "albergue", "casa segura", "resguardo", "alojamiento"),
+    "support_service": ("apoyo", "asistencia", "linea", "línea", "clinica", "clínica", "servicio"),
+    "organization": ("organizacion", "organización", "asociacion", "asociación", "fundacion", "fundación", "copred", "unadis"),
+    "community_center": ("centro comunitario", "centro cultural", "comunidad", "taller", "colectivo"),
+}
+
+SIGNAL_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "lgbtq_affirming": ("lgbt", "lgbtq", "queer", "gay", "lesbi", "diversidad", "disidencia"),
+    "trans_inclusive": ("trans", "no binari", "identidad de genero", "identidad de género"),
+    "free": ("gratis", "gratuito", "gratuita", "sin costo", "público", "publico"),
+    "open_24_7": ("24/7", "24 horas", "todo el día", "todo el dia"),
+    "contact_only": ("por telefono", "por teléfono", "linea", "línea", "sin direccion", "sin dirección"),
 }
 
 
@@ -101,7 +109,6 @@ def lambda_handler(event: dict, context: Any) -> dict:
 
     criteria, source = extract_criteria(query)
     logger.info("Búsqueda resuelta", extra={"source": source, "criteria": criteria})
-
     return response(200, {"query": query, "criteria": criteria, "source": source})
 
 
@@ -117,15 +124,15 @@ def read_query(raw_body: str | None) -> str | None:
         return None
 
     query = str(payload.get("query", "")).strip()
-    if not query:
-        return None
-    return query[:MAX_QUERY_LENGTH]
+    return query[:MAX_QUERY_LENGTH] if query else None
 
 
 def extract_criteria(query: str) -> tuple[dict, str]:
     """Convierte la frase en criterios validados.
 
-    Devuelve los criterios y de dónde salieron: "bedrock" o "fallback".
+    Devuelve los criterios y de dónde salieron: "bedrock" o "fallback". Ese
+    segundo valor llega hasta la interfaz y se pinta como una etiqueta, para
+    que se vea cuándo está respondiendo el modelo y cuándo la tabla.
     """
     try:
         raw_criteria = ask_bedrock(query)
@@ -155,7 +162,7 @@ def ask_bedrock(query: str) -> str:
         messages=[{"role": "user", "content": [{"text": query}]}],
         # temperature=0 hace la salida lo más determinista posible, que es lo
         # que queremos en una tarea de clasificación.
-        inferenceConfig={"temperature": 0, "maxTokens": 200},
+        inferenceConfig={"temperature": 0, "maxTokens": 240},
     )
 
     usage = result.get("usage", {})
@@ -171,7 +178,7 @@ def ask_bedrock(query: str) -> str:
 
 
 def validate_criteria(model_text: str) -> dict | None:
-    """Parsea y valida la respuesta del modelo.
+    """Parsea la respuesta del modelo y la reduce a las tres allowlists.
 
     Aunque el prompt pida JSON, un modelo puede devolver otra cosa. Esta es la
     frontera de confianza: nada llega al frontend sin pasar por aquí.
@@ -194,47 +201,53 @@ def validate_criteria(model_text: str) -> dict | None:
     if category not in ALLOWED_CATEGORIES:
         category = None
 
-    raw_signals = parsed.get("signals")
-    if not isinstance(raw_signals, list):
-        raw_signals = []
+    services = stable_allowed_list(parsed.get("services"), ALLOWED_SERVICES)
+    signals = stable_allowed_list(parsed.get("signals"), ALLOWED_SIGNALS)
+    return {"category": category, "services": services, "signals": signals}
 
-    # Allowlist: lo que no reconocemos se descarta en silencio. Preservamos el
-    # orden de la taxonomía para que la respuesta sea estable.
-    signals = [signal for signal in ALLOWED_SIGNALS if signal in raw_signals]
 
-    return {"category": category, "signals": signals}
+def stable_allowed_list(value: Any, allowed: tuple[str, ...]) -> list[str]:
+    """Allowlist: lo que no reconocemos se descarta en silencio.
+
+    Se recorre `allowed`, no lo que devolvió el modelo, por dos motivos: filtra
+    y además fija el orden, así que la misma frase da siempre la misma
+    respuesta aunque el modelo cambie el orden de la lista.
+    """
+    if not isinstance(value, list):
+        return []
+    return [candidate for candidate in allowed if candidate in value]
 
 
 def keyword_criteria(query: str) -> dict:
-    """Extrae criterios buscando palabras clave. Sin IA y sin red.
-
-    Es el plan B cuando Bedrock no responde, y de paso deja claro qué aporta
-    realmente el modelo: entender frases que esta tabla no cubre.
-    """
+    """Plan B determinista, sin IA ni red."""
     normalized = strip_accents(query.lower())
 
+    services = [
+        service
+        for service in ALLOWED_SERVICES
+        if any(keyword in normalized for keyword in SERVICE_KEYWORDS.get(service, ()))
+    ]
     signals = [
         signal
         for signal in ALLOWED_SIGNALS
-        if any(keyword in normalized for keyword in SIGNAL_KEYWORDS.get(signal, ()))
+        if any(strip_accents(keyword) in normalized for keyword in SIGNAL_KEYWORDS.get(signal, ()))
     ]
-
     category = next(
         (
             candidate
             for candidate in ALLOWED_CATEGORIES
-            if any(keyword in normalized for keyword in CATEGORY_KEYWORDS.get(candidate, ()))
+            if any(strip_accents(keyword) in normalized for keyword in CATEGORY_KEYWORDS.get(candidate, ()))
         ),
         None,
     )
 
-    return {"category": category, "signals": signals}
+    return {"category": category, "services": services, "signals": signals}
 
 
 def strip_accents(text: str) -> str:
     """Quita los acentos para poder comparar sin sorpresas.
 
-    "café tranquilo" -> "cafe tranquilo"
+    "asesoría jurídica" -> "asesoria juridica"
     """
     return "".join(
         char
@@ -247,10 +260,15 @@ def response(status_code: int, body: dict) -> dict:
     """Da forma a la respuesta que espera el HTTP API.
 
     Las cabeceras de CORS las añade API Gateway a partir de la
-    CorsConfiguration declarada en template.yaml.
+    CorsConfiguration declarada en template.yaml. `no-store` va aquí por la
+    misma razón que en la otra función: sin cabecera de frescura el navegador
+    puede reutilizar la interpretación de una búsqueda anterior.
     """
     return {
         "statusCode": status_code,
-        "headers": {"content-type": "application/json; charset=utf-8"},
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+        },
         "body": json.dumps(body, ensure_ascii=False),
     }

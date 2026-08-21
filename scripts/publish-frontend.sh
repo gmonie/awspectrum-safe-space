@@ -52,6 +52,7 @@ bucket_name="$(stack_output WebsiteBucketName)"
 key_name="$(stack_output MapsApiKeyName)"
 allowed_signals="$(stack_output AllowedSignals)"
 allowed_categories="$(stack_output AllowedCategories)"
+allowed_services="$(stack_output AllowedServices)"
 
 printf '  %s✓%s Outputs leídos de la stack %s\n' "$GREEN" "$RESET" "$STACK_NAME"
 
@@ -87,6 +88,7 @@ window.SAFE_SPACE_CONFIG = {
   mapsApiKey: "${maps_api_key}",
   allowedSignals: $(to_json_array "$allowed_signals"),
   allowedCategories: $(to_json_array "$allowed_categories"),
+  allowedServices: $(to_json_array "$allowed_services"),
 };
 EOF
 
