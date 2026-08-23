@@ -4,7 +4,7 @@
 #
 # Hace tres cosas, en este orden:
 #
-#   1. Lee los Outputs de la stack de CloudFormation.
+#   1. Lee los Outputs del stack de CloudFormation.
 #   2. Obtiene el VALOR de la API key de Amazon Location.
 #      CloudFormation crea la key pero no devuelve su valor como Output —solo
 #      su nombre—, así que hay que pedírselo a la API con describe-key.
@@ -31,7 +31,7 @@ fi
 printf '\n%s🌈 Safe Space · publicar frontend%s\n\n' "$BOLD" "$RESET"
 
 # --------------------------------------------------------------------------
-# 1. Outputs de la stack
+# 1. Outputs del stack
 # --------------------------------------------------------------------------
 stack_output() {
   aws cloudformation describe-stacks \
@@ -42,7 +42,7 @@ stack_output() {
 }
 
 if ! aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" >/dev/null 2>&1; then
-  printf '✗ No existe la stack "%s" en %s. Ejecuta primero: sam deploy\n\n' "$STACK_NAME" "$AWS_REGION" >&2
+  printf '✗ No existe el stack "%s" en %s. Ejecuta primero: sam deploy\n\n' "$STACK_NAME" "$AWS_REGION" >&2
   exit 1
 fi
 
@@ -54,7 +54,7 @@ allowed_signals="$(stack_output AllowedSignals)"
 allowed_categories="$(stack_output AllowedCategories)"
 allowed_services="$(stack_output AllowedServices)"
 
-printf '  %s✓%s Outputs leídos de la stack %s\n' "$GREEN" "$RESET" "$STACK_NAME"
+printf '  %s✓%s Outputs leídos del stack %s\n' "$GREEN" "$RESET" "$STACK_NAME"
 
 # --------------------------------------------------------------------------
 # 2. Valor de la API key de Amazon Location

@@ -262,7 +262,7 @@ function popupHtml(resource) {
 // inteligente entra por aquí exactamente igual que un clic en un filtro. La IA
 // no tiene una vía privilegiada.
 //
-// Los filtros se generan desde CONFIG, que sale de los Outputs de la stack, que
+// Los filtros se generan desde CONFIG, que sale de los Outputs del stack, que
 // salen de template.yaml. Añadir un servicio nuevo es editar una línea de la
 // plantilla y volver a desplegar: la interfaz aparece sola.
 // ---------------------------------------------------------------------------

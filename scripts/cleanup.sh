@@ -7,7 +7,7 @@
 #
 #   1. Vacía el bucket del sitio. CloudFormation no puede borrar un bucket que
 #      todavía tiene objetos dentro.
-#   2. Ejecuta 'sam delete', que borra la stack y con ella el resto de recursos:
+#   2. Ejecuta 'sam delete', que borra el stack y con él el resto de recursos:
 #      API, Lambdas, tabla, API key de Location y log groups.
 #
 # Uso:
@@ -29,7 +29,7 @@ fi
 printf '\n%s🧹 Safe Space · cleanup%s\n\n' "$BOLD" "$RESET"
 
 if ! aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" >/dev/null 2>&1; then
-  printf '  No existe la stack "%s" en %s. No hay nada que borrar.\n\n' "$STACK_NAME" "$AWS_REGION"
+  printf '  No existe el stack "%s" en %s. No hay nada que borrar.\n\n' "$STACK_NAME" "$AWS_REGION"
   exit 0
 fi
 
@@ -39,13 +39,13 @@ bucket_name="$(aws cloudformation describe-stacks \
   --query "Stacks[0].Outputs[?OutputKey=='WebsiteBucketName'].OutputValue" \
   --output text)"
 
-# Una stack que falló al crearse no llegó a publicar sus Outputs.
+# Un stack que falló al crearse no llegó a publicar sus Outputs.
 if [[ -z "$bucket_name" || "$bucket_name" == "None" ]]; then
   bucket_name=""
 fi
 
 printf '%sSe borrarán, de forma irreversible:%s\n' "$YELLOW" "$RESET"
-printf '  · la stack de CloudFormation "%s" y todos sus recursos\n' "$STACK_NAME"
+printf '  · el stack de CloudFormation "%s" y todos sus recursos\n' "$STACK_NAME"
 if [[ -n "$bucket_name" ]]; then
   printf '  · el contenido del bucket s3://%s\n' "$bucket_name"
   printf '  · los espacios que registraste en DynamoDB\n'
@@ -67,9 +67,9 @@ if [[ -n "$bucket_name" ]]; then
   printf '  %s✓%s Bucket del sitio vaciado\n' "$GREEN" "$RESET"
 fi
 
-# 2. Borrar la stack.
+# 2. Borrar el stack.
 sam delete --stack-name "$STACK_NAME" --region "$AWS_REGION" --no-prompts >/dev/null
-printf '  %s✓%s Stack "%s" eliminada\n' "$GREEN" "$RESET" "$STACK_NAME"
+printf '  %s✓%s Stack "%s" eliminado\n' "$GREEN" "$RESET" "$STACK_NAME"
 
 # 3. La configuración local ya no apunta a nada.
 rm -f "$REPO_ROOT/frontend/config.js"

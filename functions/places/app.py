@@ -255,7 +255,7 @@ def validate_resource(payload: dict) -> tuple[dict, list[str]]:
 
 
 def allowed_values(value: Any, allowed: frozenset[str], field: str) -> tuple[list[str], list[str]]:
-    """Comprueba una lista de etiquetas contra la allowlist de la stack."""
+    """Comprueba una lista de etiquetas contra la allowlist del stack."""
     if not isinstance(value, list):
         return [], [f"'{field}' debe ser una lista."]
 

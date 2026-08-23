@@ -12,7 +12,7 @@
 --------------------------------------------------------------------------- */
 
 window.SAFE_SPACE_CONFIG = {
-  // Output ApiUrl de la stack.
+  // Output ApiUrl del stack.
   apiUrl: "https://abc123xyz.execute-api.us-east-1.amazonaws.com",
 
   // Región donde vive todo. Se usa para construir la URL del mapa.

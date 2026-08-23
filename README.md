@@ -153,7 +153,7 @@ Git. Abrir un pull request hacia `upstream` es opcional.
 ## Al terminar
 
 ```bash
-./scripts/cleanup.sh   # borra la stack y todo lo que creaste en AWS
+./scripts/cleanup.sh   # borra el stack y todo lo que creaste en AWS
 aws logout             # cierra la sesión temporal
 ```
 
@@ -322,7 +322,7 @@ El cleanup es parte del workshop:
 ```
 
 Vacía el bucket y ejecuta `sam delete`. Antes de borrar recursos de una cuenta compartida, confirma
-que la stack no esté siendo utilizada.
+que el stack no esté siendo utilizado.
 
 ## Licencia
 

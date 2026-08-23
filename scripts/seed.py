@@ -6,7 +6,7 @@
 
 La ruta normal es idempotente: cada recurso del seed tiene un `id` fijo y
 sobrescribe el mismo item. `--replace` es deliberadamente explícito porque
-elimina los registros anteriores, incluidos los de una stack ya utilizada.
+elimina los registros anteriores, incluidos los de un stack ya utilizado.
 """
 
 import argparse
@@ -53,7 +53,7 @@ def main() -> int:
     try:
         outputs = stack_outputs(cloudformation, STACK_NAME)
     except ClientError as error:
-        print(f"✗ No se pudo leer la stack '{STACK_NAME}': {error}", file=sys.stderr)
+        print(f"✗ No se pudo leer el stack '{STACK_NAME}': {error}", file=sys.stderr)
         print("  ¿Ya ejecutaste 'sam deploy'?", file=sys.stderr)
         return 1
 
@@ -90,7 +90,7 @@ def main() -> int:
 
 
 def stack_outputs(cloudformation, stack_name: str) -> dict[str, str]:
-    """Devuelve los Outputs de la stack como un diccionario."""
+    """Devuelve los Outputs del stack como un diccionario."""
     described = cloudformation.describe_stacks(StackName=stack_name)
     return {
         output["OutputKey"]: output["OutputValue"]
@@ -104,7 +104,7 @@ def validate(
     allowed_categories: set[str],
     allowed_services: set[str],
 ) -> list[str]:
-    """Revisa el seed contra la taxonomía real de la stack.
+    """Revisa el seed contra la taxonomía real del stack.
 
     Atrapa erratas antes de escribir en DynamoDB: es mucho más fácil arreglar
     un typo aquí que descubrir por qué una ficha no aparece en el directorio.
