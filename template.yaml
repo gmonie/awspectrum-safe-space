@@ -59,7 +59,14 @@ Globals:
 
 Resources:
   # -------------------------------------------------------------------------
-  # Datos comunitarios
+  # PlacesTable · Amazon DynamoDB
+  #
+  # La base de datos. Aquí viven los recursos del directorio y aquí siguen
+  # cuando cierras el navegador: es lo único de esta plantilla que recuerda algo
+  # entre una visita y la siguiente.
+  #
+  # DynamoDB guarda "items" y busca por una clave, como un cajón de fichas
+  # ordenado por un único dato. Aquí ese dato es `id`.
   # -------------------------------------------------------------------------
   PlacesTable:
     Type: AWS::Serverless::SimpleTable
@@ -72,7 +79,16 @@ Resources:
       # lectura y escritura, no por capacidad reservada.
 
   # -------------------------------------------------------------------------
-  # API HTTP: tres rutas, dos funciones
+  # SafeSpaceApi · Amazon API Gateway
+  #
+  # La puerta de entrada. Es la dirección pública a la que llama el navegador, y
+  # lo único de este backend que está expuesto a internet.
+  #
+  # Recibe la petición HTTP y decide a qué función mandarla según el método
+  # (GET, POST) y la ruta (/resources, /search). No sabe nada de recursos ni de
+  # privacidad: solo reparte. La lógica vive en las Lambdas.
+  #
+  # Tres rutas, dos funciones.
   # -------------------------------------------------------------------------
   SafeSpaceApi:
     Type: AWS::Serverless::HttpApi
@@ -92,6 +108,16 @@ Resources:
           - content-type
         MaxAge: 300
 
+  # -------------------------------------------------------------------------
+  # PlacesFunction · AWS Lambda
+  #
+  # Código que se ejecuta sin que nadie mantenga un servidor. No hay una máquina
+  # encendida esperando: AWS arranca esta función cuando llega una petición y la
+  # apaga al terminar. Si nadie entra, no se paga nada.
+  #
+  # Esta atiende el directorio: devuelve los recursos aprobados y guarda las
+  # propuestas nuevas como pendientes. Es la única que habla con DynamoDB.
+  # -------------------------------------------------------------------------
   PlacesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -126,6 +152,17 @@ Resources:
             Method: POST
             Path: /resources
 
+  # -------------------------------------------------------------------------
+  # SearchFunction · AWS Lambda + Amazon Bedrock
+  #
+  # La segunda función, separada de la anterior a propósito: hace otro trabajo y
+  # necesita otros permisos. Ésta no puede tocar la base de datos, y la otra no
+  # puede llamar al modelo.
+  #
+  # Bedrock es el servicio que da acceso a modelos de lenguaje. Aquí solo se usa
+  # para traducir una frase escrita por una persona a criterios de búsqueda; no
+  # elige recursos ni consulta la tabla.
+  # -------------------------------------------------------------------------
   SearchFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -165,7 +202,7 @@ Resources:
   # Declaramos los log groups en la plantilla para dos cosas: fijar retención
   # (sin esto los logs se guardan para siempre) y garantizar que 'sam delete'
   # deje la cuenta realmente limpia. Los log groups que Lambda crea por su
-  # cuenta sobreviven al borrado de la stack.
+  # cuenta sobreviven al borrado del stack.
   # -------------------------------------------------------------------------
   PlacesFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -180,7 +217,14 @@ Resources:
       RetentionInDays: 7
 
   # -------------------------------------------------------------------------
-  # Frontend estático
+  # WebsiteBucket · Amazon S3
+  #
+  # Donde vive la página web. S3 guarda archivos —HTML, CSS, JavaScript,
+  # imágenes— y sabe entregárselos a un navegador. Nada más: no ejecuta código y
+  # no consulta la base de datos.
+  #
+  # Cuando alguien abre Safe Space, lo primero que ocurre es que S3 le manda
+  # estos archivos. Todo lo demás lo pide después el navegador.
   #
   # ATENCIÓN — atajo consciente del workshop: el endpoint de sitio web de S3
   # sirve por HTTP y exige que los objetos sean de lectura pública. Lo elegimos
@@ -221,7 +265,15 @@ Resources:
             Resource: !Sub "${WebsiteBucket.Arn}/*"
 
   # -------------------------------------------------------------------------
-  # Amazon Location: mapas y búsqueda de lugares desde el navegador
+  # MapsApiKey · Amazon Location Service
+  #
+  # El mapa. Fíjate en que no creamos ningún mapa: creamos una LLAVE. Los mapas
+  # ya existen dentro de AWS, y lo único que hace falta es un permiso para
+  # pedirlos. Por eso este recurso se llama "key" y no "map".
+  #
+  # Es también el único servicio al que el navegador llama directamente, sin
+  # pasar por nuestra API: los cuadraditos del mapa viajan de Amazon Location al
+  # navegador y no tocan ninguna Lambda.
   #
   # La API key permite llamadas no autenticadas desde el frontend sin montar
   # Amazon Cognito. CloudFormation crea la key pero NO devuelve su valor: por
