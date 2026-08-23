@@ -93,6 +93,29 @@ if identity="$(aws sts get-caller-identity --output json 2>/dev/null)"; then
   arn="$(printf '%s' "$identity" | python3 -c 'import json,sys; print(json.load(sys.stdin)["Arn"])')"
   pass "Credenciales activas · cuenta ${account}"
   hint "$arn"
+
+  # Que la CLI vea tus credenciales no significa que boto3 también las vea.
+  # 'aws login' las deja en un formato que botocore solo sabe leer con su
+  # proveedor 'login', y ese necesita awscrt. La CLI v2 trae su propio CRT
+  # dentro, así que la comprobación de arriba pasa igual y seed.py muere
+  # después. Aquí se resuelve la cadena de credenciales de verdad.
+  if python3 -c "import boto3" >/dev/null 2>&1; then
+    if boto_error="$(python3 -c '
+import boto3, sys
+credenciales = boto3.Session().get_credentials()
+if credenciales is None:
+    sys.exit("no se encontró ninguna credencial")
+credenciales.get_frozen_credentials()
+' 2>&1)"; then
+      pass "boto3 también puede usarlas · scripts/seed.py funcionará"
+    else
+      fail "La CLI ve tus credenciales, pero boto3 no."
+      hint "$(printf '%s' "$boto_error" | tail -1)"
+      hint ""
+      hint "Instálalo y vuelve a ejecutar el preflight:"
+      hint "    pip install 'botocore[crt]'"
+    fi
+  fi
 else
   fail "AWS todavía no sabe quién eres."
   case "$ENVIRONMENT" in
