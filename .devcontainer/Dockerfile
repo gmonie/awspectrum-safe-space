@@ -70,7 +70,13 @@ RUN set -eux; \
     # --- boto3 --------------------------------------------------------------------------
     # scripts/seed.py lo necesita en el host. Las Lambdas NO: ahí lo aporta el runtime
     # gestionado, y por eso el proyecto no tiene requirements.txt.
-    pip install --no-cache-dir "boto3==${BOTO3_VERSION}"; \
+    #
+    # El extra [crt] no es opcional aquí. 'aws login' deja unas credenciales que botocore
+    # solo sabe leer con su proveedor 'login', y ese proveedor necesita awscrt. Sin el
+    # extra, seed.py muere con MissingDependencyException DESPUÉS de que todo lo demás
+    # haya salido en verde: la AWS CLI v2 trae su propio CRT dentro, así que
+    # 'aws sts get-caller-identity' y el preflight funcionan igual.
+    pip install --no-cache-dir "boto3[crt]==${BOTO3_VERSION}"; \
     \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
