@@ -174,10 +174,10 @@ printf '\n%sEstado previo%s\n' "$BOLD" "$RESET"
 if aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" >/dev/null 2>&1; then
   status="$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" \
             --query 'Stacks[0].StackStatus' --output text)"
-  warn "Ya existe una stack '${STACK_NAME}' en estado ${status}."
+  warn "Ya existe un stack '${STACK_NAME}' en estado ${status}."
   hint "'sam deploy' la actualizará en vez de crearla. Para empezar de cero: ./scripts/cleanup.sh"
 else
-  pass "No hay una stack '${STACK_NAME}' previa · deploy limpio"
+  pass "No hay un stack '${STACK_NAME}' previo · deploy limpio"
 fi
 
 # --------------------------------------------------------------------------
@@ -189,9 +189,9 @@ if (( failures > 0 )); then
 fi
 
 if (( warnings > 0 )); then
-  printf '%s! %d aviso(s), ningún bloqueo.%s Puedes continuar con: sam build && sam deploy\n\n' \
+  printf '%s! %d aviso(s), ningún bloqueo.%s Puedes continuar el workshop.\n\n' \
     "$YELLOW" "$warnings" "$RESET"
   exit 0
 fi
 
-printf '%s✓ Todo listo.%s Continúa con: sam build && sam deploy\n\n' "$GREEN" "$RESET"
+printf '%s✓ Todo listo.%s Continúa el workshop.\n\n' "$GREEN" "$RESET"
