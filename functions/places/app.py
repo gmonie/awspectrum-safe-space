@@ -77,6 +77,10 @@ def lambda_handler(event: dict, context: Any) -> dict:
     El HTTP API entrega los eventos en formato payload 2.0, donde `routeKey`
     tiene la forma "GET /resources".
     """
+    # API Gateway no entrega una petición HTTP cruda: la traduce a un
+    # diccionario. De todo lo que trae, aquí solo interesa `routeKey`, que es el
+    # par método + ruta ya resuelto ("GET /resources"). Comparar esa cadena es
+    # lo que permite que una sola función atienda varias rutas.
     route_key = event.get("routeKey")
     logger.info("Petición recibida", extra={"routeKey": route_key})
 
@@ -107,7 +111,15 @@ def list_resources() -> dict:
     # Un Scan devuelve como máximo 1 MB por página. Si hay más datos, DynamoDB
     # incluye LastEvaluatedKey y hay que volver a pedir desde ahí.
     while True:
+        # La llamada a DynamoDB. Devuelve una página de la tabla en `Items`, ya
+        # deserializada por boto3: cada item es un diccionario de Python. Los
+        # números llegan como `Decimal`, y por eso existe el DecimalEncoder de
+        # arriba —`json.dumps` no sabe serializarlos por su cuenta—.
         page = TABLE.scan(**scan_kwargs)
+
+        # El filtro que decide qué puede salir de aquí. Recorre los items de la
+        # página y conserva solo los aprobados, así que lo `pending` nunca llega
+        # a la lista que se convertirá en la respuesta HTTP.
         resources.extend(
             item for item in page.get("Items", []) if item.get("publicationStatus") == "approved"
         )
