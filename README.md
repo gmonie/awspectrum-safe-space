@@ -203,18 +203,18 @@ Busca apoyo:
 
 ```bash
 curl -X POST "$API/search" -H 'content-type: application/json' \
-  -d '{"query":"necesito apoyo psicológico y quiero saber a dónde llamar"}'
+  -d '{"query":"necesito apoyo psicológico gratuito"}'
 ```
 
 Una respuesta típica tiene esta forma:
 
 ```json
 {
-  "query": "necesito apoyo psicológico y quiero saber a dónde llamar",
+  "query": "necesito apoyo psicológico gratuito",
   "criteria": {
-    "category": "support_service",
+    "category": null,
     "services": ["psychological_support"],
-    "signals": []
+    "signals": ["free"]
   },
   "source": "bedrock"
 }
