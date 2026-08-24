@@ -33,6 +33,32 @@ if ! aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AW
   exit 0
 fi
 
+# Antes de borrar nada: comprobar que el stack es de Safe Space.
+#
+# STACK_NAME se puede sobrescribir desde el entorno. Sin esta comprobación, una
+# variable heredada de otra sesión —o un `--yes`, que se salta la confirmación—
+# borraría el stack de otro proyecto sin preguntar. Un script de taller que
+# corren 71 personas no puede tener ese filo.
+#
+# Se miran los identificadores lógicos, no los Outputs: un stack que falló al
+# crearse no llegó a publicar Outputs, pero sí registró sus recursos, y ese
+# stack también hay que poder limpiarlo.
+recursos_logicos="$(aws cloudformation list-stack-resources \
+  --stack-name "$STACK_NAME" \
+  --region "$AWS_REGION" \
+  --query "StackResourceSummaries[].LogicalResourceId" \
+  --output text 2>/dev/null || true)"
+
+for logico in PlacesTable PlacesFunction WebsiteBucket; do
+  if ! printf '%s\n' $recursos_logicos | grep -qx "$logico"; then
+    printf '  %sEl stack "%s" no parece de Safe Space%s: no contiene %s.\n' \
+      "$YELLOW" "$STACK_NAME" "$RESET" "$logico"
+    printf '  Este script no lo va a borrar.\n\n'
+    printf '  %sSi de verdad querías otro stack, bórralo desde la consola.%s\n\n' "$DIM" "$RESET"
+    exit 1
+  fi
+done
+
 bucket_name="$(aws cloudformation describe-stacks \
   --stack-name "$STACK_NAME" \
   --region "$AWS_REGION" \
