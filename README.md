@@ -203,18 +203,18 @@ Busca apoyo:
 
 ```bash
 curl -X POST "$API/search" -H 'content-type: application/json' \
-  -d '{"query":"necesito apoyo psicológico para una persona trans y quiero saber a dónde llamar"}'
+  -d '{"query":"necesito apoyo psicológico y quiero saber a dónde llamar"}'
 ```
 
 Una respuesta típica tiene esta forma:
 
 ```json
 {
-  "query": "necesito apoyo psicológico para una persona trans",
+  "query": "necesito apoyo psicológico y quiero saber a dónde llamar",
   "criteria": {
     "category": "support_service",
     "services": ["psychological_support"],
-    "signals": ["trans_inclusive"]
+    "signals": []
   },
   "source": "bedrock"
 }
@@ -230,7 +230,7 @@ Si Bedrock falla, `source` cambia a `fallback` y la extracción determinista man
   "name": "USIPT · Unidad de Salud Integral para Personas Trans",
   "category": "support_service",
   "services": ["psychological_support", "legal_support", "healthcare"],
-  "signals": ["trans_inclusive"],
+  "signals": ["lgbtq_affirming"],
   "address": "solo si la ubicación es pública",
   "latitude": 19.4545577,
   "longitude": -99.1509918,
@@ -270,7 +270,7 @@ La fuente de verdad vive en `template.yaml`:
 - categorías: `organization`, `support_service`, `community_center`, `shelter_referral`;
 - servicios: `psychological_support`, `legal_support`, `healthcare`, `referral`,
   `community_network`, `shelter_support`;
-- señales: `lgbtq_affirming`, `trans_inclusive`, `free`, `open_24_7`, `contact_only`.
+- señales: `lgbtq_affirming`, `free`, `open_24_7`, `contact_only`.
 
 La plantilla pasa las tres listas a las Lambdas y `publish-frontend.sh` las escribe en
 `frontend/config.js`. Ese archivo está en `.gitignore` porque contiene la API key de Amazon

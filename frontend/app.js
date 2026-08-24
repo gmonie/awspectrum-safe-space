@@ -36,7 +36,6 @@ const MAP_ZOOM = 12.4;
 // aquí, la interfaz mostrará su identificador tal cual en vez de romperse.
 const SIGNAL_LABELS = {
   lgbtq_affirming: "🌈 Atención LGBTQ+",
-  trans_inclusive: "🏳️‍⚧️ Inclusivo para personas trans",
   free: "🫶 Gratuito",
   open_24_7: "🕒 24/7",
   contact_only: "☎️ Contacto / derivación",

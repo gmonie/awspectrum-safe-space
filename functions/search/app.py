@@ -94,7 +94,6 @@ CATEGORY_KEYWORDS: dict[str, tuple[str, ...]] = {
 
 SIGNAL_KEYWORDS: dict[str, tuple[str, ...]] = {
     "lgbtq_affirming": ("lgbt", "lgbtq", "queer", "gay", "lesbi", "diversidad", "disidencia"),
-    "trans_inclusive": ("trans", "no binari", "identidad de genero", "identidad de género"),
     "free": ("gratis", "gratuito", "gratuita", "sin costo", "público", "publico"),
     "open_24_7": ("24/7", "24 horas", "todo el día", "todo el dia"),
     "contact_only": ("por telefono", "por teléfono", "linea", "línea", "sin direccion", "sin dirección"),

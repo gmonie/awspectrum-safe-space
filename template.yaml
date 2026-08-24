@@ -21,7 +21,7 @@ Parameters:
       comas. Es la única fuente de verdad: la usan las dos Lambdas para validar
       y el frontend para dibujar los filtros. Para añadir una señal, edita esta
       línea y vuelve a ejecutar 'sam deploy'.
-    Default: lgbtq_affirming,trans_inclusive,free,open_24_7,contact_only
+    Default: lgbtq_affirming,free,open_24_7,contact_only
 
   AllowedCategories:
     Type: String

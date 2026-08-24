@@ -47,7 +47,7 @@ def load_search_module():
 
 def load_module(name, path, extra_env, boto3_method, boto3_value, return_value):
     environment = {
-        "ALLOWED_SIGNALS": "lgbtq_affirming,trans_inclusive,free,open_24_7,contact_only",
+        "ALLOWED_SIGNALS": "lgbtq_affirming,free,open_24_7,contact_only",
         "ALLOWED_CATEGORIES": "organization,support_service,community_center,shelter_referral",
         "ALLOWED_SERVICES": "psychological_support,legal_support,healthcare,referral,community_network,shelter_support",
         **extra_env,
@@ -164,7 +164,7 @@ class SearchContractTests(unittest.TestCase):
             {
                 "category": "not-a-category",
                 "services": ["legal_support", "invented_service"],
-                "signals": ["trans_inclusive", "invented_signal"],
+                "signals": ["lgbtq_affirming", "invented_signal"],
             }
         )
 
@@ -175,16 +175,16 @@ class SearchContractTests(unittest.TestCase):
             {
                 "category": None,
                 "services": ["legal_support"],
-                "signals": ["trans_inclusive"],
+                "signals": ["lgbtq_affirming"],
             },
         )
 
     def test_keyword_fallback_extracts_resource_need(self):
-        criteria = self.module.keyword_criteria("apoyo psicológico para una persona trans")
+        criteria = self.module.keyword_criteria("apoyo psicológico gratuito para personas lgbt")
 
         self.assertEqual(criteria["category"], "support_service")
         self.assertIn("psychological_support", criteria["services"])
-        self.assertIn("trans_inclusive", criteria["signals"])
+        self.assertIn("lgbtq_affirming", criteria["signals"])
 
     def test_bedrock_error_returns_fallback_contract(self):
         error = ClientError(

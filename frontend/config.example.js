@@ -26,7 +26,6 @@ window.SAFE_SPACE_CONFIG = {
   // los filtros y el formulario a partir de estas tres listas.
   allowedSignals: [
     "lgbtq_affirming",
-    "trans_inclusive",
     "free",
     "open_24_7",
     "contact_only",

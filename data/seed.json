@@ -40,7 +40,6 @@
       "community_network"
     ],
     "signals": [
-      "trans_inclusive",
       "lgbtq_affirming"
     ],
     "address": "Avenida Insurgentes Norte 423, Nonoalco Tlatelolco, Cuauhtémoc, 06900 CDMX",
@@ -68,8 +67,7 @@
       "referral"
     ],
     "signals": [
-      "lgbtq_affirming",
-      "trans_inclusive"
+      "lgbtq_affirming"
     ],
     "address": "Benjamín Hill 24, Colonia Condesa, Cuauhtémoc, 06140 CDMX",
     "latitude": 19.40898,
@@ -96,8 +94,7 @@
       "referral"
     ],
     "signals": [
-      "lgbtq_affirming",
-      "trans_inclusive"
+      "lgbtq_affirming"
     ],
     "address": "Avenida Combate de Celaya s/n, Unidad Habitacional Vicente Guerrero, Iztapalapa, 09730 CDMX",
     "latitude": 19.35677,
@@ -183,7 +180,6 @@
     ],
     "signals": [
       "lgbtq_affirming",
-      "trans_inclusive",
       "open_24_7",
       "contact_only"
     ],
