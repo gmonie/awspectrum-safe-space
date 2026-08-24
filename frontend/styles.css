@@ -30,7 +30,7 @@
 
   --radius: 12px;
   --radius-sm: 8px;
-  --sidebar-width: 400px;
+  --sidebar-width: 440px;
   --header-height: 76px;
 
   --font-display: "Outfit", system-ui, sans-serif;
@@ -220,9 +220,14 @@ textarea {
   padding: 16px;
 }
 
+/* El sidebar siempre desborda, así que `flex: 1` nunca llega a crecer: esta
+   altura mínima es la que manda en la práctica. Con 220px la lista medía
+   151px y una ficha ocupa ~213px, así que no cabía ni una entera. 560px deja
+   ver dos completas y el borde de la tercera, que es lo que le dice a quien
+   mira que la lista sigue hacia abajo. */
 .panel--grow {
   flex: 1;
-  min-height: 220px;
+  min-height: 560px;
   display: flex;
   flex-direction: column;
 }
