@@ -1,22 +1,39 @@
+<div align="center">
+
 # 🌈 Safe Space
 
 **Directorio de recursos inclusivos con procedencia visible · Ciudad de México**
 
 Workshop de [AWSpectrum LATAM](https://linktr.ee/awspectrum.latam) · *Cloud • Community • Diversity*
 
-Safe Space ayuda a encontrar organizaciones, servicios de apoyo, centros comunitarios y canales de
-derivación. Algunos recursos tienen una ubicación pública y aparecen en el mapa; otros funcionan por
-teléfono, chat o canalización y se muestran únicamente como fichas de contacto.
+[![Guía del taller](https://img.shields.io/badge/gu%C3%ADa-awspectrum--impact--lab-7C3AED?style=flat-square)](https://awspectrum-impact-lab.vercel.app)
+[![AWS SAM](https://img.shields.io/badge/AWS-SAM-FF9900?style=flat-square&logo=amazonwebservices&logoColor=white)](template.yaml)
+[![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)](functions/)
+[![Licencia MIT](https://img.shields.io/badge/licencia-MIT-16A34A?style=flat-square)](LICENSE)
 
-> **Safe Space no certifica que un recurso sea universalmente seguro ni que esté disponible en todo
-> momento.** El directorio muestra la fuente, la fecha de revisión y el estado de publicación. Las
+</div>
+
+Safe Space ayuda a encontrar organizaciones, servicios de apoyo, centros comunitarios y canales de
+derivación. Los recursos con ubicación pública aparecen en el mapa; los que funcionan por teléfono,
+chat o canalización se muestran solo como fichas de contacto.
+
+> [!IMPORTANT]
+> **Safe Space no certifica que un recurso sea seguro ni que esté disponible.** Muestra su fuente,
+> la fecha en que se revisó y su estado de publicación, y deja que quien lo lee juzgue. Las
 > derivaciones a refugios nunca publican la dirección protegida.
 
-## Qué vas a construir
+En tres horas vas a desplegar esta aplicación en tu propia cuenta de AWS, recorrerla por dentro y
+cambiarla. No la escribes desde cero: **el objetivo es salir pudiendo contar el camino de una
+petición y explicar por qué existe cada servicio.**
 
-En tres horas vas a desplegar, inspeccionar, entender y modificar una aplicación serverless real en
-AWS. No la escribes desde cero: el objetivo es poder contar la historia de una petición y explicar
-por qué cada servicio existe.
+## 👉 Empieza por la guía
+
+Este README describe el repositorio. El taller se sigue en la guía, que son ocho paradas con sus
+comandos, sus comprobaciones y sus rescates:
+
+### **[awspectrum-impact-lab.vercel.app](https://awspectrum-impact-lab.vercel.app)**
+
+## La arquitectura, de un vistazo
 
 ```mermaid
 flowchart TB
@@ -30,299 +47,187 @@ flowchart TB
     SF --> BR["Amazon Bedrock<br>Nova Micro"]
 ```
 
-| Servicio | Para qué lo usamos |
+| Servicio | La pregunta que responde |
 | --- | --- |
-| **Amazon S3** | Alojar la interfaz estática. |
-| **Amazon Location** | Dibujar ubicaciones públicas, fuera del flujo de datos de la API. |
-| **API Gateway HTTP API** | Exponer `/resources` y `/search`. |
-| **AWS Lambda** | Validar propuestas y extraer intención de búsqueda. |
-| **Amazon DynamoDB** | Persistir recursos aprobados y propuestas pendientes. |
-| **Amazon Bedrock · Nova Micro** | Convertir lenguaje natural en criterios permitidos. |
-| **AWS SAM** | Describir y desplegar toda la infraestructura. |
+| **Amazon S3** | ¿Dónde vive la página? |
+| **API Gateway** | ¿Quién recibe la petición? |
+| **AWS Lambda** | ¿Dónde corre la lógica? |
+| **Amazon DynamoDB** | ¿Dónde persisten los datos? |
+| **Amazon Bedrock** · Nova Micro | ¿Cómo entendemos una frase escrita por una persona? |
+| **Amazon Location** | ¿Cómo dibujamos lo que sí es público? |
+| **AWS SAM** | ¿Cómo se crea y se borra todo esto de una vez? |
 
 Todo vive en **`us-east-1`**.
 
 ## Puesta en marcha
 
-No hace falta instalar nada: ni AWS CLI, ni SAM, ni Python, ni Git, ni Docker, ni VS Code.
+No necesitas instalar nada: ni AWS CLI, ni SAM, ni Python, ni Docker. Solo una cuenta de GitHub y
+una cuenta de AWS con acceso a la consola.
 
-**1. Haz un fork de este repositorio** a tu cuenta de GitHub, con el botón *Fork*.
-
-**2. Desde tu fork**, abre **Code ▸ Codespaces ▸ Create codespace on main**, con la máquina
-de **2 núcleos**. GitHub construye el entorno del taller y abre VS Code en el navegador con
-todo listo.
-
-**3. En la terminal del Codespace, inicia sesión en AWS:**
+1. **Fork** de este repositorio a tu cuenta.
+2. En tu fork: **Code ▸ Codespaces ▸ Create codespace on main**, máquina de **2 núcleos**.
+3. Ya en la terminal del Codespace:
 
 ```bash
-aws login --remote --region us-east-1
+aws login --remote --region us-east-1   # sesión temporal de 12 h, sin access keys
+aws sts get-caller-identity             # ¿quién soy para AWS?
+
+./scripts/preflight.sh                  # solo lee: comprueba que tu entorno puede desplegar
+sam build && sam deploy                 # ~1 min
+./scripts/publish-frontend.sh           # genera config.js, sube el sitio e imprime tu URL
+python3 scripts/seed.py                 # carga los 11 recursos del directorio
 ```
 
-Se abre una URL en tu navegador; al terminar, pegas el código en la terminal.
+El seed es idempotente: cada recurso tiene un `id` fijo y sobrescribe el mismo item. `--replace`
+existe, y borra lo anterior antes de cargar.
 
-**4. Comprueba quién eres:**
+> [!NOTE]
+> **Tener la AWS CLI no es lo mismo que estar autenticada en AWS.** El Codespace traía la CLI; el
+> `aws login` es lo que abre la sesión. Va con `--remote` porque el Codespace es una máquina sin
+> navegador: en vez de abrirlo él, te da una URL para que la abras tú.
 
-```bash
-aws sts get-caller-identity
-```
-
-**5. Despliega:**
-
-```bash
-./scripts/preflight.sh
-sam build
-sam deploy
-./scripts/publish-frontend.sh
-python3 scripts/seed.py
-```
-
-`publish-frontend.sh` imprime la URL de tu aplicación. El seed contiene recursos aprobados con
-fuentes directas revisadas; las propuestas nuevas no se publican automáticamente.
-
-Para reemplazar expresamente todo el contenido anterior de la tabla:
-
-```bash
-python3 scripts/seed.py --replace
-```
-
-`--replace` es deliberado: elimina los items existentes antes de cargar la semilla nueva.
-
-### Qué acaba de pasar en el paso 3
-
-Tu Codespace ya traía la AWS CLI instalada, pero AWS todavía no sabía quién eras.
-`aws login --remote` abrió una sesión temporal —dura 12 horas— y a partir de ahí la terminal
-puede actuar con tu identidad de AWS.
-
-Es la diferencia que conviene retener: **tener la AWS CLI no es lo mismo que estar
-autenticada en AWS**. El `--remote` está porque el Codespace es una máquina remota sin
-navegador propio: en vez de abrirlo él, te da una URL para que la abras tú.
-
-Este taller nunca te pide copiar una access key. Las credenciales que usa son temporales y
-caducan solas.
-
-### Si tu cuenta no es así
-
-`aws login` funciona con el usuario **root** de tu cuenta y con **usuarios IAM**. Dos casos
-necesitan otro camino:
+<details>
+<summary><b>Si tu cuenta no funciona con <code>aws login</code></b></summary>
 
 | Tu cuenta | Qué hacer |
-|---|---|
-| Usa **IAM Identity Center** (típico en cuentas de empresa o escuela) | `aws login` no sirve. Usa `aws configure sso` una vez y después `aws sso login` |
-| Eres un **usuario IAM** y `aws login` da un error de permisos | Necesitas la policy gestionada `SignInLocalDevelopmentAccess`. Pídesela a quien administre la cuenta |
-| Eres **root** | No necesitas permisos adicionales |
+| --- | --- |
+| **IAM Identity Center** (empresa o escuela) | `aws login` no sirve: `aws configure sso` una vez y después `aws sso login` |
+| **Usuario IAM** con error de permisos | Pide la policy gestionada `SignInLocalDevelopmentAccess` |
+| **Root** | Nada más |
 
-Si ninguno funciona, sigue por el **plan B** del final de esta página: en AWS CloudShell las
-credenciales son automáticas y no hace falta iniciar sesión.
+Si ninguna funciona, el taller entero corre en **AWS CloudShell** (`us-east-1`), donde las
+credenciales son automáticas: `git clone` del repo y sigue desde `preflight.sh`. Lo único que
+pierdes es comodidad para editar.
 
-## Editar el proyecto
+</details>
 
-La razón de trabajar en Codespaces y no en una terminal suelta es esta: a partir de aquí vas
-a **cambiar código**, y VS Code te da el explorador de archivos, pestañas, búsqueda en todo
-el repositorio, resaltado de sintaxis, el panel de *Source Control* y la terminal integrada,
-todo en la misma ventana.
-
-Tu Codespace tiene dos remotos:
-
-| Remoto | Qué es |
-|---|---|
-| `origin` | **tu fork** — aquí subes tus cambios |
-| `upstream` | el repositorio original del taller — de aquí vienen las actualizaciones |
-
-Trabaja en una rama y sube a tu fork:
-
-```bash
-git switch -c mi-rama
-
-# editas desde VS Code…
-
-git status
-git diff
-
-python3 -m unittest discover -s tests -v      # si tocaste las funciones
-node --check frontend/app.js                  # si tocaste el frontend
-sam validate --lint                           # si tocaste template.yaml
-
-git add .
-git commit -m "describe tu cambio"
-git push -u origin mi-rama
-```
-
-Puedes hacer todo esto desde la terminal o desde el panel de *Source Control*; es el mismo
-Git. Abrir un pull request hacia `upstream` es opcional.
-
-## Al terminar
-
-```bash
-./scripts/cleanup.sh   # borra el stack y todo lo que creaste en AWS
-aws logout             # cierra la sesión temporal
-```
-
-Después, **detén o elimina tu Codespace** desde
-[github.com/codespaces](https://github.com/codespaces). Un Codespace encendido sigue
-consumiendo tu cuota de horas aunque no lo estés usando.
-
-## 🛟 Plan B — AWS CloudShell
-
-Si no puedes crear el Codespace —te quedaste sin cuota, GitHub tiene problemas o el entorno
-falla al construirse— el taller entero funciona igual desde **AWS CloudShell**, que trae AWS
-CLI, SAM, `python3`, `boto3` y `git` ya instalados, y donde las credenciales son automáticas:
-no hace falta `aws login`.
-
-Consola de AWS → región **N. Virginia (`us-east-1`)** → icono de CloudShell:
-
-```bash
-git clone https://github.com/itsebasvz/awspectrum-safe-space.git
-cd awspectrum-safe-space
-```
-
-Y sigue desde el paso 5. Lo único que pierdes es comodidad para editar: el editor de
-CloudShell es mucho más básico que VS Code.
-
-## Las rutas de la API
+## El repositorio
 
 ```text
-GET  /resources  → devuelve recursos aprobados
+.devcontainer/     el entorno reproducible: Python 3.13, AWS CLI, SAM, gh (versiones fijadas)
+template.yaml      toda la infraestructura, en un archivo
+functions/places/  Lambda de GET/POST /resources — valida y publica
+functions/search/  Lambda de POST /search — la que habla con Bedrock
+frontend/          la interfaz: HTML, CSS y JavaScript sin framework
+data/seed.json     los 11 recursos, cada uno con su fuente y su fecha de revisión
+scripts/           preflight · publish-frontend · seed · cleanup
+tests/             8 pruebas del contrato, sin llamadas a AWS
+```
+
+Tres rutas, y nada más:
+
+```text
+GET  /resources  → los recursos aprobados
 POST /resources  → guarda una propuesta como pending
 POST /search     → convierte lenguaje natural en criterios
 ```
 
-Obtén la URL de tu stack:
-
 ```bash
 API=$(aws cloudformation describe-stacks --stack-name safe-space \
       --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
+
+curl -s "$API/resources" | python3 -m json.tool | head -14
 ```
 
-Lista recursos:
+## Cambiar algo
 
-```bash
-curl "$API/resources"
-```
+Ejecuta solo lo que corresponde a la capa que tocaste:
 
-Busca apoyo:
+| Tocaste | Para verlo | Para comprobarlo antes |
+| --- | --- | --- |
+| `frontend/` | `./scripts/publish-frontend.sh` | `node --check frontend/app.js` |
+| Código de una Lambda | `sam sync --code` | `python3 -m unittest discover -s tests -v` |
+| `template.yaml` | `sam deploy` y luego `publish-frontend.sh` | `sam validate --lint` |
+| `data/seed.json` | `python3 scripts/seed.py` | que sus `sourceUrl` abran |
 
-```bash
-curl -X POST "$API/search" -H 'content-type: application/json' \
-  -d '{"query":"necesito apoyo psicológico gratuito"}'
-```
+Para iterar sin desplegar a mano, deja `sam sync --watch --stack-name safe-space` en otra terminal.
+Ojo: **cada guardado sale de verdad hacia tu cuenta**.
 
-Una respuesta típica tiene esta forma:
+## Las tres reglas del proyecto
 
-```json
-{
-  "query": "necesito apoyo psicológico gratuito",
-  "criteria": {
-    "category": null,
-    "services": ["psychological_support"],
-    "signals": ["free"]
-  },
-  "source": "bedrock"
-}
-```
+### 1. Un recurso sin procedencia no se publica
 
-Si Bedrock falla, `source` cambia a `fallback` y la extracción determinista mantiene el flujo.
-
-## Contrato de un recurso
+Un registro real de `data/seed.json`:
 
 ```json
 {
   "id": "usipt-cdmx",
   "name": "USIPT · Unidad de Salud Integral para Personas Trans",
   "category": "support_service",
-  "services": ["psychological_support", "legal_support", "healthcare"],
+  "services": ["psychological_support", "legal_support", "healthcare", "community_network"],
   "signals": ["lgbtq_affirming"],
-  "address": "solo si la ubicación es pública",
   "latitude": 19.4545577,
   "longitude": -99.1509918,
   "contact": {
-    "phone": "55 5132 1250",
-    "website": "https://…"
+    "phone": "55 5132 1250 ext. 1354 · 55 5132 1250 ext. 1341",
+    "website": "https://www.salud.cdmx.gob.mx/ver-mas/unidad-de-salud-integral-para-personas-trans-usipt"
   },
   "provenance": {
     "type": "direct_source",
-    "sourceUrl": "https://…",
+    "sourceUrl": "https://www.salud.cdmx.gob.mx/ver-mas/unidad-de-salud-integral-para-personas-trans-usipt",
     "checkedAt": "2026-08-19"
   },
   "publicationStatus": "approved"
 }
 ```
 
-`latitude` y `longitude` son opcionales, pero deben aparecer juntas. Una `shelter_referral` no
-puede tener dirección ni coordenadas: la seguridad de quien usa el refugio está por encima de la
-completitud del mapa.
+Un registro `approved` necesita `sourceUrl` y `checkedAt`. Lo que llega por el formulario queda
+`pending` con `provenance.type = "community_submission"` y **nunca** se presenta como verificado.
 
-Los registros aprobados requieren `provenance.type = "direct_source"`, `sourceUrl` y `checkedAt`.
-Una propuesta enviada desde el formulario recibe `publicationStatus = "pending"` y
-`provenance.type = "community_submission"`; nunca se presenta como verificada.
+`latitude` y `longitude` son opcionales pero van juntas, y una `shelter_referral` no puede tener
+ninguna de las dos: la seguridad de quien usa un refugio pesa más que la completitud del mapa.
 
-## Qué hace —y qué no hace— la IA
+### 2. La IA interpreta; el código decide
 
-Bedrock convierte una frase en `{category, services, signals}`. No consulta DynamoDB, no elige
-recursos, no inventa teléfonos y no afirma que una organización esté abierta o disponible.
+Bedrock convierte *«necesito apoyo psicológico gratuito»* en `{category, services, signals}`. No
+consulta DynamoDB, no elige recursos y no inventa teléfonos. Las Lambdas descartan cualquier valor
+que no esté en la allowlist antes de que llegue al navegador. Si Bedrock no responde, `source` pasa
+a `fallback` y la búsqueda sigue funcionando con palabras clave.
 
-La allowlist de `template.yaml` valida la respuesta antes de que llegue al navegador. Después,
-`frontend/app.js` filtra los recursos aprobados. La IA interpreta; el código decide.
+### 3. La taxonomía tiene una sola fuente de verdad
 
-## Taxonomía
+`template.yaml` la declara y se la pasa a las Lambdas; `publish-frontend.sh` la escribe en
+`config.js` para dibujar los filtros.
 
-La fuente de verdad vive en `template.yaml`:
-
-- categorías: `organization`, `support_service`, `community_center`, `shelter_referral`;
-- servicios: `psychological_support`, `legal_support`, `healthcare`, `referral`,
-  `community_network`, `shelter_support`;
-- señales: `lgbtq_affirming`, `free`, `open_24_7`, `contact_only`.
-
-La plantilla pasa las tres listas a las Lambdas y `publish-frontend.sh` las escribe en
-`frontend/config.js`. Ese archivo está en `.gitignore` porque contiene la API key de Amazon
-Location y nunca debe commitearse.
-
-## Probar cambios
-
-Comprobaciones locales sin tocar AWS:
-
-```bash
-python3 -m unittest discover -s tests -v
-node --check frontend/app.js
-sam validate --lint
-```
-
-Para modificar código de Lambda durante el workshop:
-
-```bash
-sam sync --code
-```
-
-Para modificar la infraestructura o la taxonomía:
-
-```bash
-sam deploy
-./scripts/publish-frontend.sh
-```
-
-El reto recomendado es añadir una ficha de contacto o derivación sin coordenadas y demostrar que
-aparece en el directorio, pero no como pin.
-
-## Workshop vs. producción
-
-| En el workshop | En producción |
+| Dimensión | Valores |
 | --- | --- |
-| Sitio estático público de S3 | HTTPS con CloudFront o Amplify y bucket privado |
+| Categorías | `organization` · `support_service` · `community_center` · `shelter_referral` |
+| Servicios | `psychological_support` · `legal_support` · `healthcare` · `referral` · `community_network` · `shelter_support` |
+| Señales | `lgbtq_affirming` · `free` · `open_24_7` · `contact_only` |
+
+> [!WARNING]
+> `frontend/config.js` lleva la API key de Amazon Location de tu cuenta. Está en `.gitignore` y
+> **no se commitea nunca**: lo regenera `publish-frontend.sh`.
+
+## Al terminar
+
+Saber apagar lo que encendiste es la otra mitad del trabajo. Cerrar la pestaña no borra nada.
+
+```bash
+./scripts/cleanup.sh   # vacía el bucket y ejecuta sam delete
+aws logout             # cierra la sesión temporal
+```
+
+El script dice qué va a borrar antes de borrarlo, y comprueba que el stack sea de Safe Space: si le
+apuntas a otro, se niega. Después, **detén o elimina tu Codespace** en
+[github.com/codespaces](https://github.com/codespaces) — uno encendido consume tu cuota aunque no
+lo uses.
+
+Tu código sigue en tu fork. La infraestructura entera vuelve a existir con `sam deploy` cuando
+quieras: para eso está descrita en un archivo.
+
+## Esto es un taller, no producción
+
+| Aquí | En producción |
+| --- | --- |
+| Sitio estático público en S3 | CloudFront o Amplify, bucket privado, HTTPS |
 | API sin autenticación | Autenticación, autorización y límites de tasa |
-| `Scan` de DynamoDB sobre pocos recursos | Índices y patrones de acceso diseñados |
-| Seed aprobado + propuestas `pending` | Moderación, auditoría y proceso de actualización |
-| Coordenadas solo cuando son públicas | Revisión de privacidad y amenaza por recurso |
+| `Scan` de DynamoDB sobre once recursos | Índices y patrones de acceso diseñados |
+| Seed aprobado + propuestas `pending` | Moderación, auditoría y revisión periódica |
+| Coordenadas cuando la fuente ya las publica | Revisión de privacidad y amenaza, recurso por recurso |
 | Una base de datos por participante | Backend comunitario compartido |
 
-## Limpieza
-
-El cleanup es parte del workshop:
-
-```bash
-./scripts/cleanup.sh
-```
-
-Vacía el bucket y ejecuta `sam delete`. Antes de borrar recursos de una cuenta compartida, confirma
-que el stack no esté siendo utilizado.
+Saber dónde está esa frontera es parte de lo que se lleva del taller.
 
 ## Licencia
 
